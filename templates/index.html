@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>绿色低碳供应链评估系统</title>
+<style>
+/* ═══════════════════════════════════════════════════════════════════
+   Design Tokens
+   ═══════════════════════════════════════════════════════════════════ */
+:root {
+  --green-600:#059669; --green-500:#10b981; --green-700:#047857; --green-50:#ecfdf5;
+  --white:#fff; --gray-50:#f8fafc; --gray-100:#f1f5f9; --gray-200:#e2e8f0;
+  --gray-300:#cbd5e1; --gray-400:#94a3b8; --gray-500:#64748b; --gray-700:#334155; --gray-900:#0f172a;
+  --red:#dc2626; --amber:#d97706; --blue:#2563eb; --ok:#16a34a;
+  --sidebar-w:228px;
+  --radius:10px; --radius-lg:14px;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.05);
+  --shadow:0 1px 3px rgba(0,0,0,.08);
+  --shadow-md:0 4px 14px rgba(0,0,0,.1);
+  --transition:all .2s ease;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--gray-100);color:var(--gray-900);line-height:1.6;font-size:14px}
+::selection{background:var(--green-50);color:var(--green-700)}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Sidebar
+   ═══════════════════════════════════════════════════════════════════ */
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--sidebar-w);background:linear-gradient(180deg,#064e3b 0%,#065f46 100%);color:#fff;display:flex;flex-direction:column;z-index:50;overflow:hidden}
+.sidebar-brand{padding:1.1rem 1.1rem .7rem;border-bottom:1px solid rgba(255,255,255,.1)}
+.sidebar-brand h1{font-size:.95rem;font-weight:700;line-height:1.4;letter-spacing:.3px}
+.sidebar-brand .subtitle{font-size:.68rem;opacity:.45;margin-top:2px}
+.sidebar-nav{flex:1;padding:.6rem .45rem;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.15) transparent}
+.nav-group{font-size:.6rem;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.3);padding:.8rem .75rem .3rem;font-weight:700}
+.nav-item{display:flex;align-items:center;gap:.6rem;padding:.52rem .75rem;border-radius:8px;cursor:pointer;font-size:.83rem;font-weight:500;color:rgba(255,255,255,.68);transition:var(--transition);margin-bottom:2px;user-select:none}
+.nav-item:hover{background:rgba(255,255,255,.1);color:#fff}
+.nav-item.active{background:rgba(255,255,255,.18);color:#fff;font-weight:600}
+.nav-item svg{width:17px;height:17px;flex-shrink:0;opacity:.6;transition:opacity .2s}
+.nav-item.active svg{opacity:1}
+.nav-item .nav-badge{margin-left:auto;background:rgba(255,255,255,.2);padding:1px 7px;border-radius:99px;font-size:.65rem;font-weight:700;min-width:20px;text-align:center}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Main Layout
+   ═══════════════════════════════════════════════════════════════════ */
+.main{margin-left:var(--sidebar-w);min-height:100vh;display:flex;flex-direction:column}
+.topbar{height:54px;background:var(--white);border-bottom:1px solid var(--gray-200);display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;position:sticky;top:0;z-index:40;backdrop-filter:blur(8px);background:rgba(255,255,255,.92)}
+.topbar-title{font-size:1.05rem;font-weight:700;color:var(--gray-900)}
+.topbar-actions{display:flex;gap:.5rem;align-items:center}
+.content-area{flex:1;padding:1.25rem 1.75rem 2rem}
+.page{display:none;animation:fadeIn .25s ease}.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Card
+   ═══════════════════════════════════════════════════════════════════ */
+.card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);padding:1.25rem;margin-bottom:.85rem;transition:box-shadow .2s}
+.card:hover{box-shadow:var(--shadow)}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.85rem}
+.card-title{font-size:.95rem;font-weight:700;color:var(--gray-900);display:flex;align-items:center;gap:.5rem}
+.card-subtitle{font-size:.8rem;color:var(--gray-500);margin-top:2px}
+.section-title{font-size:1.15rem;font-weight:800;margin-bottom:.85rem;color:var(--gray-900)}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Stats Grid
+   ═══════════════════════════════════════════════════════════════════ */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.7rem;margin-bottom:1.25rem}
+.stat-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:.9rem 1rem;text-align:center;transition:var(--transition)}
+.stat-card:hover{border-color:var(--green-500);box-shadow:var(--shadow)}
+.stat-value{font-size:1.65rem;font-weight:800;color:var(--green-600);line-height:1.2}
+.stat-label{font-size:.74rem;color:var(--gray-500);margin-top:3px;font-weight:500}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Buttons
+   ═══════════════════════════════════════════════════════════════════ */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.35rem;padding:.45rem .9rem;border-radius:8px;border:none;font-size:.82rem;font-weight:500;cursor:pointer;transition:var(--transition);font-family:inherit;white-space:nowrap}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--green-600);color:#fff}.btn-primary:hover{background:var(--green-700);box-shadow:0 2px 8px rgba(5,150,105,.3)}
+.btn-outline{background:transparent;color:var(--green-600);border:1px solid var(--green-600)}.btn-outline:hover{background:var(--green-50)}
+.btn-ghost{background:transparent;color:var(--gray-500);border:1px solid var(--gray-200)}.btn-ghost:hover{background:var(--gray-50);color:var(--gray-700)}
+.btn-danger{background:transparent;color:var(--red);border:1px solid #fecaca}.btn-danger:hover{background:#fef2f2}
+.btn-sm{padding:.3rem .6rem;font-size:.76rem}
+.btn-lg{padding:.6rem 1.2rem;font-size:.9rem;font-weight:600}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Form Controls
+   ═══════════════════════════════════════════════════════════════════ */
+.form-group{margin-bottom:.8rem}
+.form-group label{display:block;font-weight:600;font-size:.8rem;margin-bottom:.3rem;color:var(--gray-700)}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:.5rem .7rem;border:1px solid var(--gray-200);border-radius:8px;font-size:.85rem;font-family:inherit;background:var(--white);transition:border .15s,box-shadow .15s;color:var(--gray-900)}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--green-500);box-shadow:0 0 0 3px rgba(16,185,129,.12)}
+.form-group textarea{resize:vertical;min-height:70px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.8rem}
+.search-box{position:relative;margin-bottom:.85rem}
+.search-box input{width:100%;padding:.5rem .7rem .5rem 2.2rem;border:1px solid var(--gray-200);border-radius:8px;font-size:.84rem;background:var(--white);transition:border .15s}
+.search-box input:focus{outline:none;border-color:var(--green-500)}
+.search-box::before{content:"";position:absolute;left:.7rem;top:50%;transform:translateY(-50%);width:15px;height:15px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E") no-repeat center/contain}
+@media(max-width:768px){.form-row,.form-row-3{grid-template-columns:1fr}}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Table
+   ═══════════════════════════════════════════════════════════════════ */
+.table-wrap{overflow-x:auto;border-radius:var(--radius)}
+table{width:100%;border-collapse:collapse;font-size:.83rem}
+th,td{padding:.65rem .8rem;text-align:left;border-bottom:1px solid var(--gray-200)}
+th{font-weight:700;color:var(--gray-500);font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;background:var(--gray-50)}
+tbody tr{transition:background .1s}
+tbody tr:hover td{background:var(--gray-50)}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Badge
+   ═══════════════════════════════════════════════════════════════════ */
+.badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:.7rem;font-weight:600;white-space:nowrap;letter-spacing:.01em}
+.badge-green{background:#dcfce7;color:#166534}
+.badge-blue{background:#dbeafe;color:#1e40af}
+.badge-amber{background:#fef3c7;color:#92400e}
+.badge-red{background:#fee2e2;color:#991b1b}
+.badge-purple{background:#ede9fe;color:#5b21b6}
+.badge-gray{background:#f1f5f9;color:#475569}
+.badge-teal{background:#ccfbf1;color:#134e4a}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Tabs
+   ═══════════════════════════════════════════════════════════════════ */
+.tab-bar{display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.85rem}
+.tab{padding:.32rem .8rem;border-radius:99px;border:1px solid var(--gray-200);background:var(--white);cursor:pointer;font-size:.78rem;font-weight:500;transition:var(--transition);user-select:none}
+.tab:hover{border-color:var(--green-500);color:var(--green-600)}
+.tab.active{background:var(--green-600);color:#fff;border-color:var(--green-600)}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Workflow Stepper
+   ═══════════════════════════════════════════════════════════════════ */
+.stepper{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:1.5rem;flex-wrap:wrap}
+.step{display:flex;align-items:center;gap:.4rem;padding:.5rem .95rem;border-radius:99px;font-size:.82rem;font-weight:500;color:var(--gray-400);background:var(--white);border:2px solid var(--gray-200);transition:var(--transition)}
+.step-num{width:23px;height:23px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;background:var(--gray-200);color:var(--gray-400);flex-shrink:0;transition:var(--transition)}
+.step.current{color:var(--green-600);border-color:var(--green-600);background:var(--green-50)}.step.current .step-num{background:var(--green-600);color:#fff}
+.step.done{color:var(--green-600);border-color:var(--green-500);background:var(--green-50)}.step.done .step-num{background:var(--green-600);color:#fff}
+.step-line{width:30px;height:2px;background:var(--gray-200);flex-shrink:0}.step-line.done{background:var(--green-500)}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Scenario Cards
+   ═══════════════════════════════════════════════════════════════════ */
+.scenario-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:.85rem}
+.scenario-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:1.15rem;cursor:pointer;transition:var(--transition);position:relative;overflow:hidden}
+.scenario-card:hover{border-color:var(--green-500);box-shadow:var(--shadow-md);transform:translateY(-2px)}
+.scenario-card .accent-bar{width:100%;height:4px;position:absolute;top:0;left:0}
+.scenario-card h3{font-size:.92rem;font-weight:700;margin-bottom:.3rem}
+.scenario-card p{font-size:.78rem;color:var(--gray-500);margin-bottom:.7rem;line-height:1.5}
+.scenario-card-meta{display:flex;gap:.4rem;flex-wrap:wrap}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Package Cards
+   ═══════════════════════════════════════════════════════════════════ */
+.pkg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:.85rem}
+.pkg-card{background:var(--white);border:2px solid var(--gray-200);border-radius:var(--radius-lg);padding:1.15rem;transition:var(--transition)}
+.pkg-card:hover{border-color:var(--green-500)}
+.pkg-card.selected{border-color:var(--green-600);background:var(--green-50)}
+.pkg-card h4{font-size:.9rem;font-weight:700;margin-bottom:.25rem}
+.pkg-card p{font-size:.77rem;color:var(--gray-500);margin-bottom:.45rem;line-height:1.45}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Score Item
+   ═══════════════════════════════════════════════════════════════════ */
+.score-item{background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius);padding:1rem;margin-bottom:.55rem;transition:border-color .15s}
+.score-item:hover{border-color:var(--gray-300)}
+.score-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.55rem}
+.score-name{font-weight:700;font-size:.87rem;color:var(--gray-900)}
+.score-desc{font-size:.75rem;color:var(--gray-500);margin-top:2px;line-height:1.4}
+.score-slider{display:flex;align-items:center;gap:.8rem}
+.score-slider input[type="range"]{flex:1;-webkit-appearance:none;height:6px;border-radius:3px;background:var(--gray-300);outline:none;transition:background .15s}
+.score-slider input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--green-600);cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.2);transition:transform .1s}
+.score-slider input[type="range"]::-webkit-slider-thumb:hover{transform:scale(1.15)}
+.score-val{min-width:46px;text-align:center;font-weight:800;font-size:1rem;padding:.2rem .4rem;border-radius:6px}
+.score-ticks{display:flex;justify-content:space-between;font-size:.65rem;color:var(--gray-400);margin-top:3px;padding:0 2px}
+.score-ref{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.45rem;font-size:.72rem}
+.score-ref span{padding:1px 6px;border-radius:4px}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Result
+   ═══════════════════════════════════════════════════════════════════ */
+.result-hero{text-align:center;padding:1.5rem 1rem}
+.result-score{font-size:3.5rem;font-weight:900;line-height:1}
+.result-grade{display:inline-block;padding:.35rem 1rem;border-radius:99px;font-size:1rem;font-weight:700;margin-top:.5rem;margin-bottom:.5rem}
+.suggestion-list{list-style:none}
+.suggestion-list li{padding:.6rem .85rem;border-radius:8px;margin-bottom:.4rem;font-size:.84rem;border-left:4px solid;line-height:1.5}
+.sug-critical{background:#fef2f2;border-color:var(--red);color:#7f1d1d}
+.sug-warning{background:#fffbeb;border-color:var(--amber);color:#78350f}
+.sug-success{background:#f0fdf4;border-color:var(--ok);color:#14532d}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Record Card
+   ═══════════════════════════════════════════════════════════════════ */
+.record-card{display:flex;align-items:center;gap:1rem;padding:.9rem 1.15rem;background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);margin-bottom:.6rem;box-shadow:var(--shadow-sm);transition:var(--transition)}
+.record-card:hover{box-shadow:var(--shadow-md);border-color:var(--gray-300)}
+.record-score{font-size:1.5rem;font-weight:800;min-width:48px;text-align:center}
+.record-info{flex:1;min-width:0}
+.record-name{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.record-meta{font-size:.76rem;color:var(--gray-500);margin-top:2px}
+.record-actions{display:flex;gap:.35rem;flex-shrink:0}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Grade Bar
+   ═══════════════════════════════════════════════════════════════════ */
+.grade-bar{display:flex;border-radius:6px;overflow:hidden;height:28px;margin:.45rem 0}
+.grade-seg{display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;color:#fff}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Modal
+   ═══════════════════════════════════════════════════════════════════ */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.modal-overlay.show{display:flex}
+.modal{background:var(--white);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);width:92%;max-width:600px;max-height:88vh;overflow-y:auto;padding:1.5rem;animation:modalIn .2s ease}
+@keyframes modalIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;font-size:1.05rem;font-weight:700}
+.modal-close{background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--gray-400);padding:4px;border-radius:6px;transition:var(--transition)}
+.modal-close:hover{background:var(--gray-100);color:var(--gray-700)}
+.modal-footer{display:flex;justify-content:flex-end;gap:.45rem;margin-top:1.25rem;padding-top:.85rem;border-top:1px solid var(--gray-200)}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Checkbox Item
+   ═══════════════════════════════════════════════════════════════════ */
+.check-item{display:flex;align-items:flex-start;gap:.6rem;padding:.6rem;border-radius:8px;border:1px solid var(--gray-200);margin-bottom:.35rem;cursor:pointer;transition:var(--transition);background:var(--white)}
+.check-item:hover{border-color:var(--green-500)}
+.check-item.selected{border-color:var(--green-600);background:var(--green-50)}
+.check-item input[type="checkbox"]{width:16px;height:16px;accent-color:var(--green-600);margin-top:2px;flex-shrink:0}
+.check-item-body{flex:1}
+.check-item-name{font-weight:600;font-size:.83rem}
+.check-item-desc{font-size:.74rem;color:var(--gray-500)}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Empty State
+   ═══════════════════════════════════════════════════════════════════ */
+.empty-state{text-align:center;padding:2.5rem 1rem;color:var(--gray-400)}
+.empty-state .empty-icon{font-size:2.5rem;margin-bottom:.65rem;opacity:.5}
+.empty-state p{font-size:.9rem;margin-bottom:.75rem}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Toast
+   ═══════════════════════════════════════════════════════════════════ */
+.toast-container{position:fixed;top:68px;right:1.5rem;z-index:999;display:flex;flex-direction:column;gap:.4rem}
+.toast{padding:.6rem 1rem;border-radius:8px;font-size:.84rem;font-weight:500;box-shadow:var(--shadow-md);animation:toastIn .3s ease;display:flex;align-items:center;gap:.4rem;max-width:360px}
+.toast-success{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534}
+.toast-error{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Utility
+   ═══════════════════════════════════════════════════════════════════ */
+.flex-between{display:flex;justify-content:space-between;align-items:center}
+.text-center{text-align:center}
+.mt-sm{margin-top:.4rem}.mt-md{margin-top:.85rem}.mt-lg{margin-top:1.25rem}
+.mb-sm{margin-bottom:.4rem}.mb-md{margin-bottom:.85rem}
+.gap-row{display:flex;gap:.4rem;align-items:center;flex-wrap:wrap}
+.truncate{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.color-green{color:var(--ok)}.color-blue{color:var(--blue)}.color-amber{color:var(--amber)}.color-red{color:var(--red)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:.85rem}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.85rem}
+@media(max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr}}
+.progress-bar{height:6px;background:var(--gray-200);border-radius:3px;overflow:hidden;margin:.4rem 0}
+.progress-fill{height:100%;background:var(--green-600);border-radius:3px;transition:width .3s ease}
+.divider{height:1px;background:var(--gray-200);margin:.85rem 0}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Responsive
+   ═══════════════════════════════════════════════════════════════════ */
+@media(max-width:768px){
+  .sidebar{width:60px}.sidebar-brand h1,.sidebar-brand .subtitle,.nav-group,.nav-item span:not(.nav-badge){display:none}
+  .nav-item{justify-content:center;padding:.6rem}.nav-item svg{width:20px;height:20px}
+  .main{margin-left:60px}.content-area{padding:1rem}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .scenario-grid,.pkg-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ Toast Container ═══════════════ -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- ═══════════════ Sidebar ═══════════════ -->
+<aside class="sidebar">
+<div class="sidebar-brand">
+  <h1>绿色低碳供应链<br>评估系统</h1>
+  <div class="subtitle">面向链主企业</div>
+</div>
+<nav class="sidebar-nav">
+  <div class="nav-group">总览</div>
+  <div class="nav-item active" data-page="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span>工作台</span></div>
+
+  <div class="nav-group">供应商</div>
+  <div class="nav-item" data-page="suppliers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg><span>供应商管理</span></div>
+
+  <div class="nav-group">评估配置</div>
+  <div class="nav-item" data-page="scenarios"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg><span>情景模式</span></div>
+  <div class="nav-item" data-page="indicators"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span>指标管理</span></div>
+  <div class="nav-item" data-page="packages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"/></svg><span>指标包</span></div>
+  <div class="nav-item" data-page="rules"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>打分规则</span></div>
+
+  <div class="nav-group">评估执行</div>
+  <div class="nav-item" data-page="plans"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg><span>评估方案</span><span class="nav-badge" id="badge-plans" style="display:none">0</span></div>
+  <div class="nav-item" data-page="execute"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg><span>执行评估</span></div>
+  <div class="nav-item" data-page="records"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span>评估记录</span></div>
+
+  <div class="nav-group">系统</div>
+  <div class="nav-item" data-page="system"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span>系统管理</span></div>
+</nav>
+</aside>
+
+<!-- ═══════════════ Main Content ═══════════════ -->
+<div class="main">
+<header class="topbar">
+  <div class="topbar-title" id="topbar-title">工作台</div>
+  <div class="topbar-actions" id="topbar-actions"></div>
+</header>
+<div class="content-area">
+  <div id="pg-dashboard" class="page active"></div>
+  <div id="pg-suppliers" class="page"></div>
+  <div id="pg-scenarios" class="page"></div>
+  <div id="pg-indicators" class="page"></div>
+  <div id="pg-packages" class="page"></div>
+  <div id="pg-rules" class="page"></div>
+  <div id="pg-plans" class="page"></div>
+  <div id="pg-execute" class="page"></div>
+  <div id="pg-records" class="page"></div>
+  <div id="pg-system" class="page"></div>
+</div>
+</div>
+
+<!-- ═══════════════ Modals ═══════════════ -->
+<div class="modal-overlay" id="modal-indicator"><div class="modal"><div class="modal-head"><span id="mi-title">指标</span><button class="modal-close" onclick="closeModal('modal-indicator')">&times;</button></div><div id="mi-body"></div></div></div>
+<div class="modal-overlay" id="modal-package"><div class="modal"><div class="modal-head"><span id="mp-title">指标包</span><button class="modal-close" onclick="closeModal('modal-package')">&times;</button></div><div id="mp-body"></div></div></div>
+<div class="modal-overlay" id="modal-rule"><div class="modal"><div class="modal-head"><span id="mr-title">规则</span><button class="modal-close" onclick="closeModal('modal-rule')">&times;</button></div><div id="mr-body"></div></div></div>
+<div class="modal-overlay" id="modal-scenario"><div class="modal" style="max-width:660px"><div class="modal-head"><span id="ms-title">情景</span><button class="modal-close" onclick="closeModal('modal-scenario')">&times;</button></div><div id="ms-body"></div></div></div>
+<div class="modal-overlay" id="modal-supplier"><div class="modal"><div class="modal-head"><span id="mu-title">供应商</span><button class="modal-close" onclick="closeModal('modal-supplier')">&times;</button></div><div id="mu-body"></div></div></div>
+<div class="modal-overlay" id="modal-detail"><div class="modal" style="max-width:720px"><div class="modal-head"><span id="md-title">详情</span><button class="modal-close" onclick="closeModal('modal-detail')">&times;</button></div><div id="md-body"></div></div></div>
+
+<script>
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// State & API
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let D = {};
+let EX = { step:1, scenarioId:'', plan:{}, pkgs:[], inds:[], scores:{}, weights:{} };
+let filters = { indCat:'全部', supStatus:'all', planStatus:'all', recSearch:'', scoreCat:'全部' };
+
+const PAGE_TITLES = {
+  dashboard:'工作台', suppliers:'供应商管理', scenarios:'情景模式', indicators:'指标管理',
+  packages:'指标包', rules:'打分规则', plans:'评估方案', execute:'执行评估', records:'评估记录', system:'系统管理'
+};
+
+const api = {
+  get: url => fetch(url).then(r => r.json()),
+  post: (url, data) => fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) }).then(r => r.json()),
+  put: (url, data) => fetch(url, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) }).then(r => r.json()),
+  del: url => fetch(url, { method:'DELETE' }).then(r => r.json()),
+};
+
+async function loadAll() {
+  const [indicators, packages, rules, scenarios, suppliers, plans, records, stats] = await Promise.all([
+    api.get('/api/indicators'), api.get('/api/packages'), api.get('/api/rules'),
+    api.get('/api/scenarios'), api.get('/api/suppliers'), api.get('/api/plans'),
+    api.get('/api/records'), api.get('/api/statistics')
+  ]);
+  D = { indicators, packages, rules, scenarios, suppliers, plans, records, stats };
+  const badge = document.getElementById('badge-plans');
+  if (D.stats.pendingPlans > 0) { badge.style.display = ''; badge.textContent = D.stats.pendingPlans; }
+  else badge.style.display = 'none';
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Navigation & Helpers
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function navigate(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('pg-' + page).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.page === page));
+  document.getElementById('topbar-title').textContent = PAGE_TITLES[page] || page;
+  document.getElementById('topbar-actions').innerHTML = '';
+  const loaders = { dashboard:pgDashboard, suppliers:pgSuppliers, scenarios:pgScenarios, indicators:pgIndicators, packages:pgPackages, rules:pgRules, plans:pgPlans, execute:pgExecute, records:pgRecords, system:pgSystem };
+  loaders[page]?.();
+}
+document.querySelectorAll('.nav-item').forEach(n => n.addEventListener('click', () => navigate(n.dataset.page)));
+
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+function openModal(id) { document.getElementById(id).classList.add('show'); }
+function toast(msg, type='success') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast toast-' + type;
+  t.innerHTML = (type==='success'?'&#10003; ':'&#10007; ') + msg;
+  c.appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(20px)'; setTimeout(() => t.remove(), 300); }, 2500);
+}
+function scoreColor(s) { return s >= 90 ? 'color-green' : s >= 75 ? 'color-blue' : s >= 60 ? 'color-amber' : 'color-red'; }
+function scoreBadge(s) { return s >= 90 ? 'badge-green' : s >= 75 ? 'badge-blue' : s >= 60 ? 'badge-amber' : 'badge-red'; }
+function ratingBadge(r) { return !r ? 'badge-gray' : ({优秀:'badge-green',良好:'badge-blue',一般:'badge-amber',待改进:'badge-red',通过:'badge-green',卓越:'badge-green',合格:'badge-amber',不合格:'badge-red',不通过:'badge-red'}[r]||'badge-gray'); }
+function fmtDate(d) { return d ? new Date(d).toLocaleDateString('zh-CN') : '-'; }
+function fmtTime(d) { return d ? new Date(d).toLocaleString('zh-CN') : '-'; }
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Dashboard
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+async function pgDashboard() {
+  await loadAll(); const s = D.stats;
+  const recentRecs = D.records.slice(-5).reverse();
+  const recentSups = D.suppliers.slice(-5).reverse();
+  document.getElementById('pg-dashboard').innerHTML = `
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-value">${s.supplierCount}</div><div class="stat-label">供应商总数</div></div>
+      <div class="stat-card"><div class="stat-value">${s.activeSuppliers}</div><div class="stat-label">活跃供应商</div></div>
+      <div class="stat-card"><div class="stat-value">${s.ratedSuppliers}</div><div class="stat-label">已评级</div></div>
+      <div class="stat-card"><div class="stat-value">${s.totalRecords}</div><div class="stat-label">评估次数</div></div>
+      <div class="stat-card"><div class="stat-value">${s.avgScore || '-'}</div><div class="stat-label">平均得分</div></div>
+      <div class="stat-card"><div class="stat-value">${s.passRate}%</div><div class="stat-label">通过率</div></div>
+      <div class="stat-card"><div class="stat-value">${s.pendingPlans}</div><div class="stat-label">待评估方案</div></div>
+      <div class="stat-card"><div class="stat-value">${s.indicatorCount}</div><div class="stat-label">评估指标</div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">评估闭环流程</div>
+        <div style="margin-top:.65rem">
+          ${[['1','录入供应商','在供应商管理中录入供应商基本信息、层级与联系方式'],['2','选择情景模式','根据评估目的选择预配置的场景，自动关联指标包与打分规则'],['3','创建评估方案','选定供应商，确认指标范围和权重配置'],['4','执行指标评分','逐项对绿色低碳指标进行打分评估'],['5','生成评估结果','系统自动计算加权得分、评定等级并生成改进建议'],['6','更新供应商评级','评估结果自动回写至供应商档案的绿色评级']].map(([n,t,d]) =>
+            `<div style="display:flex;gap:.7rem;margin-bottom:.7rem;align-items:flex-start">
+              <div style="width:26px;height:26px;border-radius:50%;background:var(--green-600);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;flex-shrink:0">${n}</div>
+              <div><div style="font-weight:700;font-size:.84rem">${t}</div><div style="font-size:.74rem;color:var(--gray-500);line-height:1.45">${d}</div></div></div>`).join('')}
+        </div>
+        <div class="text-center mt-md"><button class="btn btn-primary btn-lg" onclick="navigate('execute')">开始新评估</button></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">供应商绿色评级分布</div>
+        <div style="margin-top:.6rem">
+          ${['优秀','良好','一般','待改进','通过','卓越','合格','不合格','不通过',''].map(g => {
+            const cnt = D.suppliers.filter(x => g ? x.greenRating===g : !x.greenRating).length;
+            if(!cnt) return '';
+            const lbl = g || '未评级';
+            const pct = Math.round(cnt / D.suppliers.length * 100);
+            return `<div style="margin-bottom:.55rem">
+              <div class="flex-between mb-sm"><span class="badge ${ratingBadge(g)}">${lbl}</span><span style="font-size:.8rem;font-weight:600">${cnt} 家 (${pct}%)</span></div>
+              <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${g?({优秀:'#16a34a',良好:'#2563eb',一般:'#d97706',待改进:'#dc2626',通过:'#16a34a',卓越:'#065f46',合格:'#d97706',不合格:'#dc2626',不通过:'#dc2626'}[g]):'var(--gray-300)'}"></div></div></div>`;
+          }).join('')}
+        </div>
+        <div class="text-center mt-md"><button class="btn btn-outline btn-sm" onclick="navigate('suppliers')">查看供应商列表</button></div>
+      </div>
+    </div>
+
+    <div class="grid-2 mt-md">
+      <div class="card">
+        <div class="card-header"><div class="card-title">最近评估记录</div><button class="btn btn-ghost btn-sm" onclick="navigate('records')">查看全部</button></div>
+        ${recentRecs.length ? recentRecs.map(r => `<div class="record-card" style="margin-bottom:.45rem;padding:.65rem .85rem">
+          <div class="record-score ${scoreColor(r.totalScore)}">${r.totalScore}</div>
+          <div class="record-info"><div class="record-name">${r.supplierName||r.planName}</div><div class="record-meta">${r.scenarioName} · ${fmtDate(r.createdAt)}</div></div>
+          <span class="badge" style="background:${r.gradeColor}22;color:${r.gradeColor}">${r.grade}</span></div>`).join('') : '<div class="empty-state"><p>暂无评估记录</p></div>'}
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">最近添加的供应商</div><button class="btn btn-ghost btn-sm" onclick="navigate('suppliers')">查看全部</button></div>
+        ${recentSups.length ? recentSups.map(sup => `<div style="display:flex;align-items:center;gap:.7rem;padding:.5rem 0;border-bottom:1px solid var(--gray-200)">
+          <div style="width:34px;height:34px;border-radius:8px;background:var(--green-50);color:var(--green-600);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0">${sup.name[0]}</div>
+          <div style="flex:1;min-width:0"><div style="font-weight:600;font-size:.84rem" class="truncate">${sup.name}</div><div style="font-size:.74rem;color:var(--gray-500)">${sup.industry} · ${sup.tier}</div></div>
+          <span class="badge ${ratingBadge(sup.greenRating)}">${sup.greenRating||'未评级'}</span></div>`).join('') : '<div class="empty-state"><p>暂无供应商</p></div>'}
+      </div>
+    </div>`;
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Suppliers
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+async function pgSuppliers() {
+  await loadAll();
+  const tabs = [{k:'all',l:'全部'},{k:'active',l:'活跃'},{k:'inactive',l:'停用'},{k:'rated',l:'已评级'},{k:'unrated',l:'未评级'}];
+  const list = D.suppliers.filter(s => {
+    if(filters.supStatus==='active') return s.status==='active';
+    if(filters.supStatus==='inactive') return s.status!=='active';
+    if(filters.supStatus==='rated') return !!s.greenRating;
+    if(filters.supStatus==='unrated') return !s.greenRating;
+    return true;
+  });
+  const el = document.getElementById('pg-suppliers');
+  el.innerHTML = `
+    <div class="flex-between mb-md">
+      <div class="section-title" style="margin:0">供应商管理</div>
+      <button class="btn btn-primary" onclick="openSupplierModal()">+ 新增供应商</button>
+    </div>
+    <div class="flex-between mb-md">
+      <div class="tab-bar">${tabs.map(t => {
+        const cnt = t.k==='all' ? D.suppliers.length : D.suppliers.filter(s => { if(t.k==='active')return s.status==='active';if(t.k==='inactive')return s.status!=='active';if(t.k==='rated')return !!s.greenRating;return !s.greenRating; }).length;
+        return `<button class="tab ${t.k===filters.supStatus?'active':''}" onclick="filters.supStatus='${t.k}';pgSuppliers()">${t.l} (${cnt})</button>`;
+      }).join('')}</div>
+      <div class="search-box" style="margin:0;width:220px"><input placeholder="搜索供应商..." oninput="filterSupTable(this.value)"></div>
+    </div>
+    <div class="card" style="padding:0">
+      <div class="table-wrap"><table>
+        <thead><tr><th>编号</th><th>名称</th><th>行业</th><th>层级</th><th>联系人</th><th>状态</th><th>绿色评级</th><th>得分</th><th>次数</th><th style="width:180px">操作</th></tr></thead>
+        <tbody id="supplier-tbody">${renderSupRows(list)}</tbody>
+      </table></div>
+    </div>`;
+}
+function renderSupRows(list) {
+  if(!list.length) return '<tr><td colspan="10" class="text-center" style="padding:2.5rem;color:var(--gray-400)">暂无符合条件的供应商</td></tr>';
+  return list.map(s => `<tr>
+    <td style="font-family:monospace;font-size:.78rem;color:var(--gray-500)">${s.code}</td>
+    <td><span style="font-weight:600">${s.name}</span></td>
+    <td><span class="badge badge-blue">${s.industry}</span></td>
+    <td><span class="badge badge-purple">${s.tier}</span></td>
+    <td style="font-size:.82rem">${s.contact||'-'}</td>
+    <td><span class="badge ${s.status==='active'?'badge-green':'badge-red'}">${s.status==='active'?'活跃':s.status==='blacklisted'?'黑名单':'停用'}</span></td>
+    <td><span class="badge ${ratingBadge(s.greenRating)}">${s.greenRating||'未评级'}</span></td>
+    <td><span class="${scoreColor(s.latestScore)}" style="font-weight:700">${s.latestScore||'-'}</span></td>
+    <td style="font-size:.82rem">${s.assessCount||0}</td>
+    <td>
+      <button class="btn btn-ghost btn-sm" onclick="viewSupplier('${s.id}')">详情</button>
+      <button class="btn btn-ghost btn-sm" onclick="editSupplier('${s.id}')">编辑</button>
+      <button class="btn btn-primary btn-sm" onclick="quickAssess('${s.id}')">评估</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteSupplier('${s.id}')">删除</button>
+    </td></tr>`).join('');
+}
+function filterSupTable(q) {
+  q = q.toLowerCase();
+  const list = D.suppliers.filter(s => {
+    if(filters.supStatus==='active' && s.status!=='active') return false;
+    if(filters.supStatus==='inactive' && s.status==='active') return false;
+    if(filters.supStatus==='rated' && !s.greenRating) return false;
+    if(filters.supStatus==='unrated' && s.greenRating) return false;
+    if(q && !s.name.toLowerCase().includes(q) && !s.code.toLowerCase().includes(q) && !s.industry.includes(q)) return false;
+    return true;
+  });
+  document.getElementById('supplier-tbody').innerHTML = renderSupRows(list);
+}
+function quickAssess(supId) {
+  const sup = D.suppliers.find(x => x.id === supId);
+  if (!sup) return;
+  EX = { step:1, scenarioId:'', plan:{}, pkgs:[], inds:[], scores:{}, weights:{} };
+  navigate('execute');
+}
+function openSupplierModal(s) {
+  document.getElementById('mu-title').textContent = s ? '编辑供应商' : '新增供应商';
+  document.getElementById('mu-body').innerHTML = `
+    <input type="hidden" id="sup-edit-id" value="${s?s.id:''}">
+    <div class="form-row">
+      <div class="form-group"><label>供应商编号</label><input id="sup-code" value="${s?s.code:`SUP-${new Date().getFullYear()}-`}"></div>
+      <div class="form-group"><label>名称 *</label><input id="sup-name" value="${s?s.name:''}"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>行业</label><select id="sup-industry"><option>制造业</option><option>电子信息</option><option>化工医药</option><option>食品饮料</option><option>汽车工业</option><option>纺织服装</option><option>建筑建材</option><option>物流运输</option><option>零售消费</option><option>其他</option></select></div>
+      <div class="form-group"><label>层级</label><select id="sup-tier"><option>一级</option><option>二级</option><option>三级</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>联系人</label><input id="sup-contact" value="${s?s.contact:''}"></div>
+      <div class="form-group"><label>电话</label><input id="sup-phone" value="${s?s.phone:''}"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>邮箱</label><input id="sup-email" value="${s?s.email:''}"></div>
+      <div class="form-group"><label>状态</label><select id="sup-status"><option value="active" ${!s||s.status==='active'?'selected':''}>活跃</option><option value="inactive" ${s&&s.status==='inactive'?'selected':''}>停用</option><option value="blacklisted" ${s&&s.status==='blacklisted'?'selected':''}>黑名单</option></select></div>
+    </div>
+    <div class="form-group"><label>地址</label><input id="sup-address" value="${s?s.address:''}"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-supplier')">取消</button>
+      <button class="btn btn-primary" onclick="saveSupplier()">保存</button>
+    </div>`;
+  if(s) { document.getElementById('sup-industry').value = s.industry; document.getElementById('sup-tier').value = s.tier; }
+  openModal('modal-supplier');
+}
+function editSupplier(id) { const s = D.suppliers.find(x => x.id === id); if(s) openSupplierModal(s); }
+async function saveSupplier() {
+  const id = document.getElementById('sup-edit-id').value;
+  const d = { code:document.getElementById('sup-code').value.trim(), name:document.getElementById('sup-name').value.trim(), industry:document.getElementById('sup-industry').value, tier:document.getElementById('sup-tier').value, contact:document.getElementById('sup-contact').value.trim(), phone:document.getElementById('sup-phone').value.trim(), email:document.getElementById('sup-email').value.trim(), address:document.getElementById('sup-address').value.trim(), status:document.getElementById('sup-status').value };
+  if(!d.name) { toast('请填写供应商名称','error'); return; }
+  if(id) { const old = D.suppliers.find(x=>x.id===id); Object.assign(d, { greenRating:old?.greenRating||'', latestScore:old?.latestScore||0, assessCount:old?.assessCount||0, createdAt:old?.createdAt||'' }); await api.put('/api/suppliers/'+id, d); }
+  else { Object.assign(d, { greenRating:'', latestScore:0, assessCount:0, createdAt:new Date().toISOString() }); await api.post('/api/suppliers', d); }
+  closeModal('modal-supplier'); toast(id?'供应商已更新':'供应商已添加'); pgSuppliers();
+}
+async function deleteSupplier(id) { if(!confirm('确定删除此供应商？')) return; await api.del('/api/suppliers/'+id); toast('供应商已删除'); pgSuppliers(); }
+
+async function viewSupplier(id) {
+  const data = await api.get('/api/suppliers/'+id+'/detail');
+  const s = data.supplier; const recs = data.records;
+  document.getElementById('md-title').textContent = '供应商详情';
+  document.getElementById('md-body').innerHTML = `
+    <div style="display:flex;gap:1rem;align-items:center;margin-bottom:1.25rem">
+      <div style="width:52px;height:52px;border-radius:12px;background:var(--green-50);color:var(--green-600);display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:800;flex-shrink:0">${s.name[0]}</div>
+      <div style="flex:1"><div style="font-size:1.1rem;font-weight:700">${s.name}</div><div style="font-size:.82rem;color:var(--gray-500)">${s.code} · ${s.industry} · ${s.tier}</div></div>
+      <div style="text-align:center"><span class="badge ${ratingBadge(s.greenRating)}" style="font-size:.88rem;padding:.3rem .8rem">${s.greenRating||'未评级'}</span><div style="font-size:.74rem;color:var(--gray-500);margin-top:3px">最新 ${s.latestScore||'-'} 分</div></div>
+    </div>
+    <div class="grid-3" style="margin-bottom:1rem">
+      <div class="stat-card"><div class="stat-value" style="font-size:1.4rem">${s.assessCount||0}</div><div class="stat-label">评估次数</div></div>
+      <div class="stat-card"><div class="stat-value" style="font-size:1.4rem">${s.latestScore||'-'}</div><div class="stat-label">最新得分</div></div>
+      <div class="stat-card"><div class="stat-value" style="font-size:1.4rem">${s.status==='active'?'活跃':s.status==='blacklisted'?'黑名单':'停用'}</div><div class="stat-label">状态</div></div>
+    </div>
+    <div style="font-size:.84rem;color:var(--gray-500);margin-bottom:1rem;line-height:1.7">
+      <strong>联系人：</strong>${s.contact||'-'} &nbsp; <strong>电话：</strong>${s.phone||'-'} &nbsp; <strong>邮箱：</strong>${s.email||'-'}<br>
+      <strong>地址：</strong>${s.address||'-'} &nbsp; <strong>入库时间：</strong>${fmtDate(s.createdAt)}
+    </div>
+    <div class="divider"></div>
+    <div class="card-title mb-md">评估历史 (${recs.length})</div>
+    ${recs.length ? recs.slice().reverse().map(r => `<div class="record-card" style="padding:.65rem .85rem;margin-bottom:.4rem">
+      <div class="record-score" style="font-size:1.3rem;color:${r.gradeColor}">${r.totalScore}</div>
+      <div class="record-info"><div class="record-name" style="font-size:.85rem">${r.scenarioName}</div><div class="record-meta">${r.ruleName} · ${fmtDate(r.createdAt)}</div></div>
+      <span class="badge" style="background:${r.gradeColor}22;color:${r.gradeColor}">${r.grade}</span>
+      <span class="badge ${r.passed?'badge-green':'badge-red'}">${r.passed?'通过':'未通过'}</span></div>`).join('') : '<div class="empty-state"><p>暂无评估记录</p><button class="btn btn-primary btn-sm mt-sm" onclick="closeModal(\'modal-detail\');navigate(\'execute\')">立即评估</button></div>'}`;
+  openModal('modal-detail');
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Scenarios
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+async function pgScenarios() {
+  await loadAll();
+  const pkgMap = Object.fromEntries(D.packages.map(p=>[p.id,p]));
+  const ruleMap = Object.fromEntries(D.rules.map(r=>[r.id,r]));
+  document.getElementById('pg-scenarios').innerHTML = `
+    <div class="flex-between mb-md"><div class="section-title" style="margin:0">情景模式</div><button class="btn btn-primary" onclick="openScenarioModal()">+ 新建情景</button></div>
+    <div class="card-subtitle mb-md">预配置的评估场景，组合指标包与打分规则，点击即可一键创建评估方案。</div>
+    <div class="scenario-grid">${D.scenarios.map(sc => {
+      const rule = ruleMap[sc.ruleId]; const pkgs = sc.packageIds.map(id=>pkgMap[id]).filter(Boolean);
+      const indCount = new Set(pkgs.flatMap(p=>p.indicatorIds)).size;
+      return `<div class="scenario-card" onclick="EX.scenarioId='${sc.id}';navigate('execute')">
+        <div class="accent-bar" style="background:${pkgs[0]?.color||'var(--green-600)'}"></div>
+        <h3>${sc.name}</h3><p>${sc.description}</p>
+        <div class="scenario-card-meta">
+          <span class="badge badge-green">${sc.industry}</span>
+          <span class="badge badge-blue">${sc.applicableScope}</span>
+          <span class="badge badge-purple">${indCount} 项指标</span>
+          <span class="badge badge-gray">${rule?rule.name:'-'}</span>
+        </div>
+        <div style="margin-top:.6rem;font-size:.76rem;color:var(--gray-500)">指标包：${pkgs.map(p=>`<span class="badge badge-teal">${p.name}</span> `).join('')}</div>
+        <div style="display:flex;justify-content:flex-end;gap:.35rem;margin-top:.7rem">
+          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();editScenario('${sc.id}')">编辑</button>
+          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteScenario('${sc.id}')">删除</button></div></div>`;
+    }).join('')}</div>`;
+}
+function openScenarioModal(sc) {
+  document.getElementById('ms-title').textContent = sc?'编辑情景':'新建情景';
+  document.getElementById('ms-body').innerHTML = `
+    <input type="hidden" id="sc-edit-id" value="${sc?sc.id:''}">
+    <div class="form-row"><div class="form-group"><label>情景名称 *</label><input id="sc-name" value="${sc?sc.name:''}"></div><div class="form-group"><label>适用行业</label><input id="sc-industry" value="${sc?sc.industry:'通用'}"></div></div>
+    <div class="form-group"><label>描述</label><textarea id="sc-desc">${sc?sc.description:''}</textarea></div>
+    <div class="form-group"><label>适用范围</label><input id="sc-scope" value="${sc?sc.applicableScope:''}"></div>
+    <div class="form-group"><label>打分规则</label><select id="sc-rule">${D.rules.map(r=>`<option value="${r.id}" ${sc&&sc.ruleId===r.id?'selected':''}>${r.name}</option>`).join('')}</select></div>
+    <div class="form-group"><label>选择指标包</label>${D.packages.map(p=>`<label class="check-item ${sc&&sc.packageIds.includes(p.id)?'selected':''}" onclick="this.classList.toggle('selected');this.querySelector('input').checked=!this.querySelector('input').checked"><input type="checkbox" value="${p.id}" ${sc&&sc.packageIds.includes(p.id)?'checked':''}><div class="check-item-body"><div class="check-item-name">${p.name}</div><div class="check-item-desc">${p.description}</div></div></label>`).join('')}</div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modal-scenario')">取消</button><button class="btn btn-primary" onclick="saveScenario()">保存</button></div>`;
+  openModal('modal-scenario');
+}
+function editScenario(id) { const sc=D.scenarios.find(s=>s.id===id); if(sc)openScenarioModal(sc); }
+async function saveScenario() {
+  const id=document.getElementById('sc-edit-id').value;
+  const d = { name:document.getElementById('sc-name').value.trim(), description:document.getElementById('sc-desc').value.trim(), industry:document.getElementById('sc-industry').value.trim(), applicableScope:document.getElementById('sc-scope').value.trim(), ruleId:document.getElementById('sc-rule').value, packageIds:[...document.querySelectorAll('#ms-body input[type=checkbox]:checked')].map(c=>c.value) };
+  if(!d.name) { toast('请填写情景名称','error'); return; }
+  if(id) await api.put('/api/scenarios/'+id,d); else await api.post('/api/scenarios',d);
+  closeModal('modal-scenario'); toast(id?'情景已更新':'情景已创建'); pgScenarios();
+}
+async function deleteScenario(id) { if(!confirm('确定删除？')) return; await api.del('/api/scenarios/'+id); toast('情景已删除'); pgScenarios(); }
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Indicators
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+async function pgIndicators() {
+  await loadAll();
+  const cats = ['全部',...new Set(D.indicators.map(i=>i.category))];
+  const catCounts = {};
+  D.indicators.forEach(i => { catCounts[i.category] = (catCounts[i.category]||0)+1; });
+  document.getElementById('pg-indicators').innerHTML = `
+    <div class="flex-between mb-md"><div class="section-title" style="margin:0">评估指标管理</div><button class="btn btn-primary" onclick="openIndicatorModal()">+ 新增指标</button></div>
+    <div class="tab-bar">${cats.map(c => `<button class="tab ${c===filters.indCat?'active':''}" onclick="filters.indCat='${c}';renderIndTable()">${c}${c!=='全部'?' ('+catCounts[c]+')':' ('+D.indicators.length+')'}</button>`).join('')}</div>
+    <div class="card" style="padding:0"><div class="table-wrap"><table>
+      <thead><tr><th>编号</th><th>名称</th><th>类别</th><th>描述</th><th>单位</th><th>类型</th><th>操作</th></tr></thead>
+      <tbody id="ind-tbody"></tbody>
+    </table></div></div>`;
+  renderIndTable();
+}
+function renderIndTable() {
+  const list = filters.indCat==='全部' ? D.indicators : D.indicators.filter(i=>i.category===filters.indCat);
+  document.getElementById('ind-tbody').innerHTML = list.length ? list.map(i => `<tr>
+    <td style="font-family:monospace;font-size:.78rem;color:var(--gray-500)">${i.id}</td>
+    <td style="font-weight:600">${i.name}</td>
+    <td><span class="badge badge-green">${i.category}</span></td>
+    <td style="max-width:220px;font-size:.78rem;color:var(--gray-500)">${i.description}</td>
+    <td>${i.unit}</td>
+    <td><span class="badge ${i.dataType==='quantitative'?'badge-blue':'badge-amber'}">${i.dataType==='quantitative'?'定量':'定性'}</span></td>
+    <td><button class="btn btn-ghost btn-sm" onclick='openIndicatorModal(${JSON.stringify(i).replace(/\x27/g,"&#39;")})'>编辑</button> <button class="btn btn-danger btn-sm" onclick="deleteIndicator('${i.id}')">删除</button></td>
+  </tr>`).join('') : '<tr><td colspan="7" class="text-center" style="padding:2.5rem;color:var(--gray-400)">暂无指标</td></tr>';
+}
+function openIndicatorModal(ind) {
+  document.getElementById('mi-title').textContent = ind?'编辑指标':'新增指标';
+  const cats = [...new Set(D.indicators.map(i=>i.category))];
+  document.getElementById('mi-body').innerHTML = `
+    <input type="hidden" id="ind-edit-id" value="${ind?ind.id:''}">
+    <div class="form-row"><div class="form-group"><label>名称 *</label><input id="ind-name" value="${ind?ind.name:''}"></div><div class="form-group"><label>类别 *</label><input id="ind-cat" value="${ind?ind.category:''}" list="cat-datalist"><datalist id="cat-datalist">${cats.map(c=>`<option>${c}</option>`).join('')}</datalist></div></div>
+    <div class="form-group"><label>描述</label><textarea id="ind-desc">${ind?ind.description:''}</textarea></div>
+    <div class="form-row"><div class="form-group"><label>单位</label><input id="ind-unit" value="${ind?ind.unit:'%'}"></div><div class="form-group"><label>数据类型</label><select id="ind-dtype"><option value="quantitative" ${!ind||ind.dataType==='quantitative'?'selected':''}>定量</option><option value="qualitative" ${ind&&ind.dataType==='qualitative'?'selected':''}>定性</option></select></div></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modal-indicator')">取消</button><button class="btn btn-primary" onclick="saveIndicator()">保存</button></div>`;
+  openModal('modal-indicator');
+}
+async function saveIndicator() {
+  const id = document.getElementById('ind-edit-id').value;
+  const d = { name:document.getElementById('ind-name').value.trim(), category:document.getElementById('ind-cat').value.trim(), description:document.getElementById('ind-desc').value.trim(), unit:document.getElementById('ind-unit').value.trim(), dataType:document.getElementById('ind-dtype').value };
+  if(!d.name||!d.category) { toast('请填写名称和类别','error'); return; }
+  if(id) await api.put('/api/indicators/'+id,d); else await api.post('/api/indicators',d);
+  closeModal('modal-indicator'); toast(id?'指标已更新':'指标已创建'); await loadAll(); pgIndicators();
+}
+async function deleteIndicator(id) { if(!confirm('确定删除？')) return; await api.del('/api/indicators/'+id); toast('指标已删除'); await loadAll(); pgIndicators(); }
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Packages
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+async function pgPackages() {
+  await loadAll(); const indMap = Object.fromEntries(D.indicators.map(i=>[i.id,i]));
+  document.getElementById('pg-packages').innerHTML = `
+    <div class="flex-between mb-md"><div class="section-title" style="margin:0">指标包管理</div><button class="btn btn-primary" onclick="openPackageModal()">+ 新建指标包</button></div>
+    <div class="card-subtitle mb-md">将相关指标打包组合，便于在情景模式和评估方案中快速引用。</div>
+    <div class="pkg-grid">${D.packages.map(pkg => {
+      const inds = pkg.indicatorIds.map(id=>indMap[id]).filter(Boolean);
+      const cats = [...new Set(inds.map(i=>i.category))];
+      return `<div class="pkg-card">
+        <div style="display:flex;align-items:center;gap:.45rem;margin-bottom:.45rem"><div style="width:10px;height:10px;border-radius:50%;background:${pkg.color||'var(--green-600)'}"></div><h4>${pkg.name}</h4></div>
+        <p>${pkg.description}</p>
+        <div style="margin-bottom:.55rem">${cats.map(c=>`<span class="badge badge-green" style="margin-right:.2rem;margin-bottom:.15rem">${c}</span>`).join('')}</div>
+        <div style="font-size:.77rem;color:var(--gray-500);margin-bottom:.5rem;line-height:1.5">包含 <strong>${inds.length}</strong> 项指标：${inds.slice(0,5).map(i=>i.name).join('、')}${inds.length>5?'...':''}</div>
+        <div class="flex-between"><span class="badge badge-blue">${inds.length} 项指标</span>
+        <div class="gap-row"><button class="btn btn-ghost btn-sm" onclick="editPackage('${pkg.id}')">编辑</button><button class="btn btn-danger btn-sm" onclick="deletePackage('${pkg.id}')">删除</button></div></div></div>`;
+    }).join('')}</div>`;
+}
+function openPackageModal(pkg) {
+  document.getElementById('mp-title').textContent = pkg?'编辑指标包':'新建指标包';
+  const cats = [...new Set(D.indicators.map(i=>i.category))];
+  let indHtml = '';
+  cats.forEach(cat => {
+    indHtml += `<div style="font-weight:700;font-size:.82rem;margin:.55rem 0 .25rem;color:var(--green-700)">${cat}</div>`;
+    D.indicators.filter(i=>i.category===cat).forEach(i => {
+      const chk = pkg&&pkg.indicatorIds.includes(i.id);
+      indHtml += `<label class="check-item ${chk?'selected':''}" style="padding:.35rem .5rem" onclick="this.classList.toggle('selected');this.querySelector('input').checked=!this.querySelector('input').checked"><input type="checkbox" value="${i.id}" ${chk?'checked':''}><div class="check-item-body"><div class="check-item-name" style="font-size:.82rem">${i.name}</div></div></label>`;
+    });
+  });
+  document.getElementById('mp-body').innerHTML = `
+    <input type="hidden" id="pkg-edit-id" value="${pkg?pkg.id:''}">
+    <div class="form-group"><label>名称 *</label><input id="pkg-name" value="${pkg?pkg.name:''}"></div>
+    <div class="form-group"><label>描述</label><textarea id="pkg-desc">${pkg?pkg.description:''}</textarea></div>
+    <div class="form-group"><label>颜色</label><input id="pkg-color" type="color" value="${pkg?pkg.color:'#059669'}" style="height:36px;padding:2px;cursor:pointer"></div>
+    <div class="form-group"><label>选择指标</label><div style="max-height:300px;overflow-y:auto;border:1px solid var(--gray-200);border-radius:8px;padding:.5rem">${indHtml}</div></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modal-package')">取消</button><button class="btn btn-primary" onclick="savePackage()">保存</button></div>`;
+  openModal('modal-package');
+}
+function editPackage(id) { const pkg=D.packages.find(p=>p.id===id); if(pkg)openPackageModal(pkg); }
+async function savePackage() {
+  const id=document.getElementById('pkg-edit-id').value;
+  const d = { name:document.getElementById('pkg-name').value.trim(), description:document.getElementById('pkg-desc').value.trim(), color:document.getElementById('pkg-color').value, indicatorIds:[...document.querySelectorAll('#mp-body input[type=checkbox]:checked')].map(c=>c.value) };
+  if(!d.name) { toast('请填写名称','error'); return; }
+  if(id) await api.put('/api/packages/'+id,d); else await api.post('/api/packages',d);
+  closeModal('modal-package'); toast(id?'指标包已更新':'指标包已创建'); await loadAll(); pgPackages();
+}
+async function deletePackage(id) { if(!confirm('确定删除？')) return; await api.del('/api/packages/'+id); toast('指标包已删除'); await loadAll(); pgPackages(); }
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Rules
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+async function pgRules() {
+  await loadAll();
+  document.getElementById('pg-rules').innerHTML = `
+    <div class="flex-between mb-md"><div class="section-title" style="margin:0">打分规则管理</div><button class="btn btn-primary" onclick="openRuleModal()">+ 新建规则</button></div>
+    <div class="card-subtitle mb-md">定义评分等级划分、及格线、权重计算模式等评估判定规则。</div>
+    ${D.rules.map(rule => {
+      const total = rule.scoringScale||100;
+      return `<div class="card">
+        <div class="card-header"><div><div class="card-title">${rule.name}</div><div class="card-subtitle">${rule.description}</div></div>
+        <div class="gap-row"><button class="btn btn-ghost btn-sm" onclick="editRule('${rule.id}')">编辑</button><button class="btn btn-danger btn-sm" onclick="deleteRule('${rule.id}')">删除</button></div></div>
+        <div style="display:flex;gap:1.5rem;font-size:.82rem;color:var(--gray-500);margin-bottom:.5rem">
+          <span>权重模式：<strong style="color:var(--gray-700)">${rule.weightMode==='weighted'?'加权':'等权'}</strong></span>
+          <span>满分：<strong style="color:var(--gray-700)">${rule.scoringScale}</strong></span>
+          <span>及格线：<strong style="color:var(--gray-700)">${rule.passScore}</strong></span>
+          <span>等级数：<strong style="color:var(--gray-700)">${rule.grades.length}</strong></span>
+        </div>
+        <div class="grade-bar">${rule.grades.map(g => `<div class="grade-seg" style="width:${(g.max-g.min+1)/total*100}%;background:${g.color}">${g.name} ${g.min}-${g.max}</div>`).join('')}</div></div>`;
+    }).join('')}`;
+}
+function openRuleModal(rule) {
+  document.getElementById('mr-title').textContent = rule?'编辑规则':'新建规则';
+  const gs = rule?rule.grades:[{name:'优秀',min:90,max:100,color:'#16a34a'},{name:'良好',min:75,max:89,color:'#2563eb'},{name:'一般',min:60,max:74,color:'#d97706'},{name:'待改进',min:0,max:59,color:'#dc2626'}];
+  document.getElementById('mr-body').innerHTML = `
+    <input type="hidden" id="rule-edit-id" value="${rule?rule.id:''}">
+    <div class="form-row"><div class="form-group"><label>名称 *</label><input id="rule-name" value="${rule?rule.name:''}"></div><div class="form-group"><label>权重模式</label><select id="rule-wm"><option value="equal" ${!rule||rule.weightMode==='equal'?'selected':''}>等权</option><option value="weighted" ${rule&&rule.weightMode==='weighted'?'selected':''}>加权</option></select></div></div>
+    <div class="form-group"><label>描述</label><textarea id="rule-desc">${rule?rule.description:''}</textarea></div>
+    <div class="form-row"><div class="form-group"><label>满分</label><input type="number" id="rule-scale" value="${rule?rule.scoringScale:100}"></div><div class="form-group"><label>及格线</label><input type="number" id="rule-pass" value="${rule?rule.passScore:60}"></div></div>
+    <div class="form-group"><label>等级设定</label><div id="grade-rows"></div><button class="btn btn-ghost btn-sm mt-sm" onclick="addGradeRow()">+ 添加等级</button></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modal-rule')">取消</button><button class="btn btn-primary" onclick="saveRule()">保存</button></div>`;
+  gs.forEach(g => addGradeRow(g));
+  openModal('modal-rule');
+}
+function addGradeRow(g) {
+  const container = document.getElementById('grade-rows');
+  const row = document.createElement('div');
+  row.style.cssText = 'display:grid;grid-template-columns:2fr 1fr 1fr auto auto;gap:.5rem;margin-bottom:.4rem;align-items:center';
+  row.innerHTML = `<input class="gr-name" placeholder="等级名" value="${g?g.name:''}" style="padding:.38rem .5rem;border:1px solid var(--gray-200);border-radius:6px;font-size:.82rem">
+    <input type="number" class="gr-min" placeholder="最低" value="${g?g.min:''}" style="padding:.38rem .5rem;border:1px solid var(--gray-200);border-radius:6px;font-size:.82rem">
+    <input type="number" class="gr-max" placeholder="最高" value="${g?g.max:''}" style="padding:.38rem .5rem;border:1px solid var(--gray-200);border-radius:6px;font-size:.82rem">
+    <input type="color" class="gr-color" value="${g?g.color:'#16a34a'}" style="width:32px;height:32px;border:none;padding:0;cursor:pointer;border-radius:4px">
+    <button onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--gray-400);cursor:pointer;font-size:1.1rem;padding:2px">&times;</button>`;
+  container.appendChild(row);
+}
+function editRule(id) { const r=D.rules.find(x=>x.id===id); if(r)openRuleModal(r); }
+async function saveRule() {
+  const id = document.getElementById('rule-edit-id').value;
+  const grades = [];
+  document.querySelectorAll('#grade-rows > div').forEach(row => {
+    const n = row.querySelector('.gr-name').value.trim(); if(!n) return;
+    grades.push({ name:n, min:parseInt(row.querySelector('.gr-min').value)||0, max:parseInt(row.querySelector('.gr-max').value)||100, color:row.querySelector('.gr-color').value });
+  });
+  const d = { name:document.getElementById('rule-name').value.trim(), description:document.getElementById('rule-desc').value.trim(), weightMode:document.getElementById('rule-wm').value, scoringScale:parseInt(document.getElementById('rule-scale').value)||100, passScore:parseInt(document.getElementById('rule-pass').value)||60, grades };
+  if(!d.name) { toast('请填写名称','error'); return; }
+  if(id) await api.put('/api/rules/'+id,d); else await api.post('/api/rules',d);
+  closeModal('modal-rule'); toast(id?'规则已更新':'规则已创建'); await loadAll(); pgRules();
+}
+async function deleteRule(id) { if(!confirm('确定删除？')) return; await api.del('/api/rules/'+id); toast('规则已删除'); await loadAll(); pgRules(); }
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Plans
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+async function pgPlans() {
+  await loadAll();
+  const statusTabs = [{k:'all',l:'全部'},{k:'pending',l:'待评估'},{k:'done',l:'已完成'}];
+  const list = D.plans.filter(p => { if(filters.planStatus==='pending') return p.status==='待评估'; if(filters.planStatus==='done') return p.status==='已完成'; return true; }).slice().reverse();
+  document.getElementById('pg-plans').innerHTML = `
+    <div class="flex-between mb-md"><div class="section-title" style="margin:0">评估方案</div><button class="btn btn-primary" onclick="navigate('execute')">+ 创建方案</button></div>
+    <div class="tab-bar mb-md">${statusTabs.map(t => {
+      const cnt = t.k==='all'?D.plans.length:D.plans.filter(p=>t.k==='pending'?p.status==='待评估':p.status==='已完成').length;
+      return `<button class="tab ${t.k===filters.planStatus?'active':''}" onclick="filters.planStatus='${t.k}';pgPlans()">${t.l} (${cnt})</button>`;
+    }).join('')}</div>
+    ${list.length ? list.map(p => {
+      const isPending = p.status==='待评估';
+      return `<div class="record-card"><div class="record-info"><div class="record-name">${p.name||p.supplierName}</div>
+        <div class="record-meta">${p.scenarioName} · ${p.supplierName} · ${p.industry||''} · ${fmtDate(p.createdAt)} · ${p.indicatorIds.length} 项指标</div></div>
+        <span class="badge ${isPending?'badge-amber':'badge-green'}">${p.status}</span>
+        <div class="record-actions">${isPending?`<button class="btn btn-primary btn-sm" onclick="executePlan('${p.id}')">去评分</button>`:''}<button class="btn btn-danger btn-sm" onclick="deletePlan('${p.id}')">删除</button></div></div>`;
+    }).join('') : '<div class="empty-state"><div class="empty-icon">&#128203;</div><p>暂无评估方案</p><button class="btn btn-primary mt-sm" onclick="navigate(\'execute\')">创建方案</button></div>'}`;
+}
+async function deletePlan(id) { if(!confirm('确定删除？')) return; await api.del('/api/plans/'+id); toast('方案已删除'); await loadAll(); pgPlans(); }
+function executePlan(planId) {
+  const p = D.plans.find(x=>x.id===planId); if(!p) return;
+  EX = { step:3, scenarioId:p.scenarioId, plan:p, pkgs:p.packageIds, inds:p.indicatorIds, scores:{}, weights:p.weights||{} };
+  p.indicatorIds.forEach(id => { EX.scores[id] = 75; });
+  navigate('execute');
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Execute (4-step wizard)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+async function pgExecute() {
+  await loadAll();
+  if (EX.step === 3 && EX.plan.id) { renderExec(); return; }
+  EX = { step:1, scenarioId:EX.scenarioId||'', plan:{}, pkgs:[], inds:[], scores:{}, weights:{} };
+  renderExec();
+}
+
+function renderExec() {
+  const s = EX.step;
+  const steps = ['选择情景','配置方案','指标评分','评估结果'];
+  const el = document.getElementById('pg-execute');
+  let html = `<div class="stepper">${steps.map((t,i) => {
+    const cls = (i+1)<s?'done':(i+1)===s?'current':'';
+    return `<div class="step ${cls}"><span class="step-num">${(i+1)<s?'&#10003;':i+1}</span>${t}</div>${i<steps.length-1?`<div class="step-line ${(i+1)<s?'done':''}"></div>`:''}`;
+  }).join('')}</div>`;
+
+  if (s===1) html += renderExecStep1();
+  if (s===2) html += renderExecStep2();
+  if (s===3) html += renderExecStep3();
+  if (s===4) html += '<div id="exec-result"></div>';
+  el.innerHTML = html;
+  if (s===2) updateExecPreview();
+}
+
+function renderExecStep1() {
+  const pkgMap = Object.fromEntries(D.packages.map(p=>[p.id,p]));
+  return `<div class="card"><div class="card-title mb-md">选择情景模式</div>
+    <div class="card-subtitle mb-md">选择一个预配置的评估情景，系统将自动加载对应的指标包和打分规则。</div>
+    <div class="scenario-grid">${D.scenarios.map(sc => {
+      const pkgs = sc.packageIds.map(pid=>pkgMap[pid]).filter(Boolean);
+      const cnt = new Set(pkgs.flatMap(p=>p.indicatorIds)).size;
+      const sel = EX.scenarioId === sc.id;
+      return `<div class="scenario-card" style="${sel?'border-color:var(--green-600);background:var(--green-50);box-shadow:0 0 0 3px rgba(16,185,129,.15)':''}" onclick="EX.scenarioId='${sc.id}';renderExec()">
+        <div class="accent-bar" style="background:${pkgs[0]?.color||'var(--green-600)'}"></div>
+        <h3>${sc.name}</h3><p>${sc.description}</p>
+        <div class="scenario-card-meta"><span class="badge badge-green">${sc.industry}</span><span class="badge badge-purple">${cnt} 项指标</span></div></div>`;
+    }).join('')}</div>
+    <div style="text-align:right;margin-top:1rem"><button class="btn btn-primary btn-lg" onclick="goExecStep(2)">下一步：配置方案 &rarr;</button></div></div>`;
+}
+
+function renderExecStep2() {
+  const sc = D.scenarios.find(s=>s.id===EX.scenarioId);
+  if (!EX.pkgs.length && sc) EX.pkgs = [...sc.packageIds];
+  const indMap = Object.fromEntries(D.indicators.map(i=>[i.id,i]));
+  return `<div class="card"><div class="card-title mb-md">配置评估方案</div>
+    <div class="form-row">
+      <div class="form-group"><label>方案名称 *</label><input id="exec-name" value="${sc?sc.name+' - '+new Date().toLocaleDateString('zh-CN'):''}"></div>
+      <div class="form-group"><label>选择供应商 *</label><select id="exec-supplier"><option value="">-- 请选择供应商 --</option>${D.suppliers.filter(s=>s.status==='active').map(s=>`<option value="${s.id}">${s.name} (${s.code} · ${s.tier})</option>`).join('')}</select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>所属行业</label><input id="exec-industry" value="${sc?sc.industry:''}"></div>
+      <div class="form-group"><label>打分规则</label><select id="exec-rule">${D.rules.map(r=>`<option value="${r.id}" ${sc&&sc.ruleId===r.id?'selected':''}>${r.name} - ${r.description}</option>`).join('')}</select></div>
+    </div>
+    <div class="form-group"><label>选择指标包</label>
+      <div class="pkg-grid">${D.packages.map(pkg => {
+        const sel = EX.pkgs.includes(pkg.id);
+        const inds = pkg.indicatorIds.map(id=>indMap[id]).filter(Boolean);
+        return `<div class="pkg-card ${sel?'selected':''}" onclick="toggleExecPkg('${pkg.id}')" style="cursor:pointer">
+          <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem"><div style="width:9px;height:9px;border-radius:50%;background:${pkg.color}"></div><h4>${pkg.name}</h4></div>
+          <p>${pkg.description}</p><span class="badge badge-blue">${inds.length} 项指标</span></div>`;
+      }).join('')}</div>
+    </div>
+    <div style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:.75rem;margin-bottom:1rem">
+      <div style="font-weight:700;font-size:.85rem;margin-bottom:.35rem" id="exec-ind-count"></div>
+      <div id="exec-ind-preview" style="font-size:.8rem;color:var(--gray-500);line-height:1.6"></div>
+    </div>
+    <div class="flex-between">
+      <button class="btn btn-ghost" onclick="goExecStep(1)">&larr; 上一步</button>
+      <div class="gap-row"><button class="btn btn-outline" onclick="savePlanOnly()">仅保存方案</button><button class="btn btn-primary btn-lg" onclick="goExecStep(3)">下一步：开始评分 &rarr;</button></div>
+    </div></div>`;
+}
+
+function toggleExecPkg(pid) {
+  const i = EX.pkgs.indexOf(pid);
+  if (i >= 0) EX.pkgs.splice(i,1); else EX.pkgs.push(pid);
+  renderExec();
+}
+function updateExecPreview() {
+  const pkgMap = Object.fromEntries(D.packages.map(p=>[p.id,p]));
+  const indMap = Object.fromEntries(D.indicators.map(i=>[i.id,i]));
+  const ids = [...new Set(EX.pkgs.flatMap(pid=>(pkgMap[pid]||{indicatorIds:[]}).indicatorIds))];
+  EX.inds = ids;
+  ids.forEach(id => { if(!(id in EX.scores)) EX.scores[id]=75; if(!(id in EX.weights)) EX.weights[id]=1; });
+  document.getElementById('exec-ind-count').textContent = `将评估 ${ids.length} 项指标`;
+  const cats = {};
+  ids.forEach(id => { const ind=indMap[id]; if(ind) { (cats[ind.category]=cats[ind.category]||[]).push(ind.name); } });
+  document.getElementById('exec-ind-preview').innerHTML = Object.entries(cats).map(([c,ns])=>`<strong>${c}：</strong>${ns.join('、')}`).join('<br>');
+}
+
+async function savePlanOnly() {
+  const body = gatherPlanData(); if(!body) return;
+  await api.post('/api/plans', body); await loadAll();
+  toast('方案已保存'); navigate('plans');
+}
+function gatherPlanData() {
+  const name = document.getElementById('exec-name').value.trim();
+  const supId = document.getElementById('exec-supplier').value;
+  if (!supId) { toast('请选择供应商','error'); return null; }
+  return { name, scenarioId:EX.scenarioId, supplierId:supId, industry:document.getElementById('exec-industry').value.trim(), ruleId:document.getElementById('exec-rule').value, packageIds:EX.pkgs, weights:EX.weights };
+}
+
+function renderExecStep3() {
+  const indMap = Object.fromEntries(D.indicators.map(i=>[i.id,i]));
+  const inds = EX.inds.map(id=>indMap[id]).filter(Boolean);
+  const cats = ['全部',...new Set(inds.map(i=>i.category))];
+  const filtered = filters.scoreCat==='全部' ? inds : inds.filter(i=>i.category===filters.scoreCat);
+  const rule = D.rules.find(r=>r.id===(EX.plan.ruleId || document.getElementById('exec-rule')?.value || 'R01'));
+  const wMode = rule?.weightMode||'equal';
+  const scored = Object.keys(EX.scores).filter(k => EX.inds.includes(k)).length;
+  const pct = inds.length ? Math.round(scored / inds.length * 100) : 0;
+
+  return `<div class="card"><div class="card-title">指标评分</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:.5rem 0 .75rem">
+      <span style="font-size:.84rem;color:var(--gray-500)">${EX.plan.supplierName||''} · 共 ${inds.length} 项指标 · ${rule?rule.name:''}</span>
+      <span style="font-size:.82rem;color:var(--gray-500)">进度 ${scored}/${inds.length}</span>
+    </div>
+    <div class="progress-bar mb-md"><div class="progress-fill" style="width:${pct}%"></div></div>
+    <div class="tab-bar">${cats.map(c => `<button class="tab ${c===filters.scoreCat?'active':''}" onclick="filters.scoreCat='${c}';renderExec()">${c}</button>`).join('')}</div>
+    ${filtered.map(ind => {
+      const sc = EX.scores[ind.id]??75; EX.scores[ind.id] = sc;
+      const w = EX.weights[ind.id]||1;
+      return `<div class="score-item">
+        <div class="score-head"><div><div class="score-name">${ind.name}</div><div class="score-desc">${ind.description}</div></div>
+        ${wMode==='weighted'?`<div style="display:flex;align-items:center;gap:.3rem;font-size:.78rem;color:var(--gray-500)">权重 <input type="number" min="1" max="10" value="${w}" style="width:44px;padding:.2rem .3rem;border:1px solid var(--gray-200);border-radius:5px;font-size:.78rem;text-align:center" onchange="EX.weights['${ind.id}']=parseInt(this.value)||1"></div>`:''}</div>
+        <div class="score-slider">
+          <input type="range" min="0" max="100" value="${sc}" oninput="updateScore('${ind.id}',this.value)">
+          <div class="score-val ${scoreColor(sc)}" id="sv-${ind.id}">${sc}</div>
+        </div>
+        <div class="score-ticks"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div></div>`;
+    }).join('')}
+    <div class="flex-between mt-lg">
+      ${EX.plan.id?`<button class="btn btn-ghost" onclick="navigate('plans')">&larr; 返回方案列表</button>`:`<button class="btn btn-ghost" onclick="goExecStep(2)">&larr; 上一步</button>`}
+      <button class="btn btn-primary btn-lg" onclick="submitExec()">提交评估</button>
+    </div></div>`;
+}
+
+function updateScore(id, val) {
+  val = parseInt(val); EX.scores[id] = val;
+  const el = document.getElementById('sv-'+id);
+  el.textContent = val; el.className = 'score-val ' + scoreColor(val);
+}
+
+async function submitExec() {
+  let planId = EX.plan.id;
+  if (!planId) { const body = gatherPlanData(); if(!body) return; const p = await api.post('/api/plans',body); planId = p.id; EX.plan = p; }
+  const record = await api.post('/api/records', { planId, scores:EX.scores });
+  await loadAll(); EX.step = 4; renderExec(); showExecResult(record);
+}
+
+function showExecResult(r) {
+  const indMap = Object.fromEntries(D.indicators.map(i=>[i.id,i]));
+  let catHtml = '';
+  for (const [cat,cd] of Object.entries(r.categoryDetail||{})) {
+    catHtml += `<div style="margin-top:1rem"><div style="font-weight:700;margin-bottom:.4rem">${cat} <span class="${scoreColor(cd.score)}" style="font-size:.85rem">(${cd.score}分 · ${cd.count}项)</span></div>`;
+    for (const [iid,sc] of Object.entries(r.scores)) {
+      const ind = indMap[iid]; if(!ind||ind.category!==cat) continue;
+      catHtml += `<div style="display:flex;justify-content:space-between;padding:.35rem .7rem;background:var(--gray-50);border-radius:6px;margin-bottom:.25rem;font-size:.84rem"><span>${ind.name}</span><span class="badge ${scoreBadge(sc)}">${sc}分</span></div>`;
+    }
+    catHtml += '</div>';
+  }
+  document.getElementById('exec-result').innerHTML = `<div class="card">
+    <div class="result-hero">
+      <div class="result-score" style="color:${r.gradeColor||'var(--green-600)'}">${r.totalScore}</div>
+      <div class="result-grade" style="background:${r.gradeColor||'var(--green-600)'}22;color:${r.gradeColor||'var(--green-600)'}">${r.grade}</div>
+      <div style="color:var(--gray-500);font-size:.88rem">${r.supplierName} · ${r.scenarioName} · ${r.ruleName}</div>
+      <div style="margin-top:.4rem;display:flex;gap:.4rem;justify-content:center">
+        <span class="badge ${r.passed?'badge-green':'badge-red'}" style="font-size:.78rem;padding:3px 10px">${r.passed?'通过':'未通过'}</span>
+        <span class="badge badge-teal" style="font-size:.78rem;padding:3px 10px">供应商评级已自动更新</span>
+      </div>
+    </div>
+    ${r.suggestions?.length?`<div class="card-title mt-lg">改进建议</div><ul class="suggestion-list mt-sm">${r.suggestions.map(s=>`<li class="sug-${s.level==='critical'?'critical':s.level==='warning'?'warning':'success'}">${s.text}</li>`).join('')}</ul>`:''}
+    <div class="card-title mt-lg">分类得分明细</div>${catHtml}
+    <div class="text-center mt-lg">
+      <button class="btn btn-primary" onclick="EX={step:1,scenarioId:'',plan:{},pkgs:[],inds:[],scores:{},weights:{}};navigate('execute')">开始新评估</button>
+      <button class="btn btn-outline" onclick="navigate('records')" style="margin-left:.5rem">查看记录</button>
+      <button class="btn btn-outline" onclick="navigate('suppliers')" style="margin-left:.5rem">查看供应商</button>
+    </div></div>`;
+}
+
+function goExecStep(step) {
+  if (step===2 && !EX.scenarioId) { toast('请先选择一个情景模式','error'); return; }
+  if (step===3 && EX.step===2) {
+    if (!document.getElementById('exec-supplier').value) { toast('请选择供应商','error'); return; }
+    if (!EX.pkgs.length) { toast('请至少选择一个指标包','error'); return; }
+    if (!EX.plan.id) { EX.plan.supplierName = D.suppliers.find(x=>x.id===document.getElementById('exec-supplier').value)?.name||''; EX.plan.ruleId = document.getElementById('exec-rule').value; }
+  }
+  EX.step = step; renderExec();
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Records
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+async function pgRecords() {
+  await loadAll();
+  const list = D.records.slice().reverse().filter(r => {
+    if (!filters.recSearch) return true;
+    const q = filters.recSearch.toLowerCase();
+    return (r.supplierName||'').toLowerCase().includes(q) || (r.scenarioName||'').toLowerCase().includes(q) || (r.grade||'').includes(q);
+  });
+  document.getElementById('pg-records').innerHTML = `
+    <div class="flex-between mb-md">
+      <div class="section-title" style="margin:0">评估记录 (${D.records.length})</div>
+      <div class="search-box" style="margin:0;width:240px"><input placeholder="搜索供应商/情景/等级..." value="${filters.recSearch}" oninput="filters.recSearch=this.value;pgRecords()"></div>
+    </div>
+    ${list.length ? list.map(r => `<div class="record-card">
+      <div class="record-score" style="color:${r.gradeColor||'var(--green-600)'}">${r.totalScore}</div>
+      <div class="record-info"><div class="record-name">${r.supplierName||r.planName}</div><div class="record-meta">${r.scenarioName} · ${r.ruleName} · ${fmtTime(r.createdAt)}</div></div>
+      <span class="badge" style="background:${r.gradeColor||'var(--green-600)'}22;color:${r.gradeColor||'var(--green-600)'};margin-right:.35rem">${r.grade}</span>
+      <span class="badge ${r.passed?'badge-green':'badge-red'}" style="margin-right:.35rem">${r.passed?'通过':'未通过'}</span>
+      <div class="record-actions"><button class="btn btn-ghost btn-sm" onclick="viewRecord('${r.id}')">详情</button><button class="btn btn-danger btn-sm" onclick="deleteRecord('${r.id}')">删除</button></div></div>`).join('') : '<div class="empty-state"><div class="empty-icon">&#128203;</div><p>暂无评估记录</p><button class="btn btn-primary mt-sm" onclick="navigate(\'execute\')">开始评估</button></div>'}`;
+}
+
+async function viewRecord(rid) {
+  const r = await api.get('/api/records/'+rid);
+  const indMap = Object.fromEntries(D.indicators.map(i=>[i.id,i]));
+  let catHtml = '';
+  for (const [cat,cd] of Object.entries(r.categoryDetail||{})) {
+    catHtml += `<div style="margin-top:.85rem"><strong>${cat}</strong> <span class="${scoreColor(cd.score)}">(${cd.score}分 · ${cd.count}项)</span>`;
+    for (const [iid,sc] of Object.entries(r.scores)) {
+      const ind = indMap[iid]; if(!ind||ind.category!==cat) continue;
+      catHtml += `<div style="display:flex;justify-content:space-between;padding:.35rem .7rem;background:var(--gray-50);border-radius:6px;margin-top:.25rem;font-size:.83rem"><span>${ind.name}</span><span class="badge ${scoreBadge(sc)}">${sc}分</span></div>`;
+    }
+    catHtml += '</div>';
+  }
+  document.getElementById('md-title').textContent = '评估记录详情';
+  document.getElementById('md-body').innerHTML = `
+    <div class="result-hero" style="padding:.85rem">
+      <div class="result-score" style="font-size:3rem;color:${r.gradeColor}">${r.totalScore}</div>
+      <div class="result-grade" style="background:${r.gradeColor}22;color:${r.gradeColor}">${r.grade}</div>
+      <div style="color:var(--gray-500);font-size:.84rem">${r.supplierName} · ${r.scenarioName} · ${r.ruleName} · ${fmtTime(r.createdAt)}</div>
+    </div>
+    ${r.suggestions?.length?`<div class="divider"></div><strong>改进建议</strong><ul class="suggestion-list mt-sm">${r.suggestions.map(s=>`<li class="sug-${s.level==='critical'?'critical':s.level==='warning'?'warning':'success'}">${s.text}</li>`).join('')}</ul>`:''}
+    ${catHtml}`;
+  openModal('modal-detail');
+}
+async function deleteRecord(id) { if(!confirm('确定删除？')) return; await api.del('/api/records/'+id); toast('记录已删除'); await loadAll(); pgRecords(); }
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// System
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+async function pgSystem() {
+  const settings = await api.get('/api/settings');
+  await loadAll(); const s = D.stats;
+  document.getElementById('pg-system').innerHTML = `
+    <div class="section-title">系统管理</div>
+
+    <div class="card">
+      <div class="card-title mb-md">平台设置</div>
+      <div class="form-row">
+        <div class="form-group"><label>平台名称</label><input id="sys-platform" value="${settings.platformName||''}"></div>
+        <div class="form-group"><label>企业名称</label><input id="sys-company" value="${settings.companyName||''}"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>管理员</label><input id="sys-admin" value="${settings.adminName||''}"></div>
+        <div class="form-group"><label>版本号</label><input id="sys-version" value="${settings.version||''}" disabled style="background:var(--gray-50)"></div>
+      </div>
+      <div style="text-align:right;margin-top:.5rem"><button class="btn btn-primary" onclick="saveSettings()">保存设置</button></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title mb-md">数据总览</div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-value">${s.supplierCount}</div><div class="stat-label">供应商</div></div>
+        <div class="stat-card"><div class="stat-value">${s.indicatorCount}</div><div class="stat-label">评估指标</div></div>
+        <div class="stat-card"><div class="stat-value">${s.packageCount}</div><div class="stat-label">指标包</div></div>
+        <div class="stat-card"><div class="stat-value">${s.ruleCount}</div><div class="stat-label">打分规则</div></div>
+        <div class="stat-card"><div class="stat-value">${s.scenarioCount}</div><div class="stat-label">情景模式</div></div>
+        <div class="stat-card"><div class="stat-value">${s.planCount}</div><div class="stat-label">评估方案</div></div>
+        <div class="stat-card"><div class="stat-value">${s.totalRecords}</div><div class="stat-label">评估记录</div></div>
+        <div class="stat-card"><div class="stat-value">${s.passRate}%</div><div class="stat-label">通过率</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title mb-md">数据管理</div>
+      <div class="card-subtitle mb-md">导出系统数据用于备份或分析。</div>
+      <div class="gap-row">
+        <button class="btn btn-outline" onclick="exportData('suppliers')">导出供应商</button>
+        <button class="btn btn-outline" onclick="exportData('records')">导出评估记录</button>
+        <button class="btn btn-outline" onclick="exportData('indicators')">导出指标</button>
+        <button class="btn btn-outline" onclick="exportAll()">导出全部数据</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title mb-md">关于系统</div>
+      <div style="font-size:.85rem;color:var(--gray-500);line-height:1.8">
+        <p>本系统为链主企业提供绿色低碳供应链评估管理功能，支持完整的评估闭环流程：</p>
+        <p style="font-weight:600;color:var(--gray-700);margin:.35rem 0">供应商管理 &rarr; 情景模式配置 &rarr; 评估方案创建 &rarr; 指标评分执行 &rarr; 结果反馈与评级更新</p>
+        <p>核心模块：供应商管理、评估指标、指标包、打分规则、情景模式、评估方案、执行评估、评估记录、系统管理</p>
+        <p style="margin-top:.5rem;font-size:.8rem;color:var(--gray-400)">版本 ${settings.version||'1.0.0'} · Flask + HTML/CSS/JS</p>
+      </div>
+    </div>`;
+}
+
+async function saveSettings() {
+  await api.put('/api/settings', { platformName:document.getElementById('sys-platform').value.trim(), companyName:document.getElementById('sys-company').value.trim(), adminName:document.getElementById('sys-admin').value.trim(), version:'1.0.0' });
+  toast('设置已保存');
+}
+function exportData(key) {
+  const data = D[key] || [];
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = key + '_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click(); URL.revokeObjectURL(url);
+  toast(`${key} 数据已导出`);
+}
+function exportAll() {
+  const blob = new Blob([JSON.stringify(D, null, 2)], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'full_export_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click(); URL.revokeObjectURL(url);
+  toast('全部数据已导出');
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Init
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+pgDashboard();
+</script>
+</body>
+</html>
