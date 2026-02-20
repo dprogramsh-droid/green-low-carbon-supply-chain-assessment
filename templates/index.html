@@ -5,954 +5,587 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>绿色低碳供应链评估系统</title>
 <style>
-:root {
-  --primary: #059669; --primary-light: #10b981; --primary-dark: #047857;
-  --primary-bg: #ecfdf5; --primary-50: #f0fdf4;
-  --surface: #ffffff; --bg: #f1f5f9; --text: #0f172a; --text-2: #475569; --text-3: #94a3b8;
-  --border: #e2e8f0; --border-2: #cbd5e1;
-  --radius: 10px; --radius-lg: 14px;
-  --shadow: 0 1px 3px rgba(0,0,0,.06);
-  --shadow-md: 0 4px 12px rgba(0,0,0,.08);
-  --danger: #dc2626; --warn: #d97706; --info: #2563eb; --success: #16a34a;
-  --sidebar-w: 240px;
-}
+:root{--c1:#059669;--c1l:#10b981;--c1d:#047857;--c1bg:#ecfdf5;--sf:#fff;--bg:#f1f5f9;--tx:#0f172a;--tx2:#475569;--tx3:#94a3b8;--bd:#e2e8f0;--bd2:#cbd5e1;--r:10px;--rl:14px;--sh:0 1px 3px rgba(0,0,0,.06);--shm:0 4px 12px rgba(0,0,0,.08);--dg:#dc2626;--wn:#d97706;--in:#2563eb;--ok:#16a34a;--sw:220px}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);line-height:1.6;font-size:14px}
-
-/* ── Sidebar ─────────────────────── */
-.sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--sidebar-w);background:linear-gradient(180deg,#064e3b 0%,#065f46 100%);color:white;display:flex;flex-direction:column;z-index:50}
-.sidebar-brand{padding:1.25rem 1.25rem .75rem;border-bottom:1px solid rgba(255,255,255,.12)}
-.sidebar-brand h1{font-size:1rem;font-weight:700;letter-spacing:.5px;line-height:1.4}
-.sidebar-brand p{font-size:.7rem;opacity:.6;margin-top:.15rem}
-.sidebar-nav{flex:1;padding:.75rem .5rem;overflow-y:auto}
-.nav-section{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.4);padding:.75rem .75rem .35rem;font-weight:600}
-.nav-item{display:flex;align-items:center;gap:.6rem;padding:.6rem .75rem;border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:500;color:rgba(255,255,255,.75);transition:all .15s;margin-bottom:1px}
-.nav-item:hover{background:rgba(255,255,255,.1);color:white}
-.nav-item.active{background:rgba(255,255,255,.18);color:white;font-weight:600}
-.nav-item svg{width:18px;height:18px;flex-shrink:0;opacity:.7}
-.nav-item.active svg{opacity:1}
-.nav-badge{margin-left:auto;background:rgba(255,255,255,.2);padding:.1rem .45rem;border-radius:999px;font-size:.7rem;font-weight:600}
-
-/* ── Main ────────────────────────── */
-.main{margin-left:var(--sidebar-w);min-height:100vh;display:flex;flex-direction:column}
-.topbar{height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;position:sticky;top:0;z-index:40}
-.topbar-title{font-size:1.05rem;font-weight:600}
-.topbar-actions{display:flex;gap:.5rem}
-.content{flex:1;padding:1.25rem 1.5rem}
-.page{display:none}.page.active{display:block}
-
-/* ── Cards ────────────────────────── */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:1.25rem;margin-bottom:1rem}
-.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
-.card-title{font-size:1rem;font-weight:600;display:flex;align-items:center;gap:.5rem}
-.section-title{font-size:1.15rem;font-weight:700;margin-bottom:1rem}
-
-/* ── Stats ────────────────────────── */
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.75rem;margin-bottom:1.25rem}
-.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;text-align:center}
-.stat-val{font-size:1.75rem;font-weight:800;color:var(--primary)}
-.stat-label{font-size:.78rem;color:var(--text-2);margin-top:.15rem}
-
-/* ── Buttons ─────────────────────── */
-.btn{display:inline-flex;align-items:center;gap:.35rem;padding:.45rem .85rem;border-radius:7px;border:none;font-size:.82rem;font-weight:500;cursor:pointer;transition:all .15s;font-family:inherit}
-.btn-primary{background:var(--primary);color:white}.btn-primary:hover{background:var(--primary-dark)}
-.btn-outline{background:transparent;color:var(--primary);border:1px solid var(--primary)}.btn-outline:hover{background:var(--primary-bg)}
-.btn-ghost{background:transparent;color:var(--text-2);border:1px solid var(--border)}.btn-ghost:hover{background:var(--bg)}
-.btn-danger{background:transparent;color:var(--danger);border:1px solid #fecaca}.btn-danger:hover{background:#fef2f2}
-.btn-sm{padding:.3rem .6rem;font-size:.78rem}
-.btn-lg{padding:.6rem 1.25rem;font-size:.9rem}
-
-/* ── Forms ────────────────────────── */
-.form-group{margin-bottom:.85rem}
-.form-group label{display:block;font-weight:500;font-size:.82rem;margin-bottom:.3rem;color:var(--text)}
-.form-group input,.form-group select,.form-group textarea{width:100%;padding:.5rem .7rem;border:1px solid var(--border);border-radius:7px;font-size:.85rem;transition:border .15s;font-family:inherit;background:var(--surface)}
-.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(5,150,105,.1)}
-.form-group textarea{resize:vertical;min-height:70px}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:.85rem}
-@media(max-width:640px){.form-row{grid-template-columns:1fr}}
-
-/* ── Table ────────────────────────── */
-.table-wrap{overflow-x:auto;border-radius:var(--radius)}
-table{width:100%;border-collapse:collapse;font-size:.84rem}
-th,td{padding:.65rem .75rem;text-align:left;border-bottom:1px solid var(--border)}
-th{font-weight:600;color:var(--text-2);font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;background:var(--bg)}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--tx);line-height:1.6;font-size:14px}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--sw);background:linear-gradient(180deg,#064e3b,#065f46);color:#fff;display:flex;flex-direction:column;z-index:50}
+.sb-brand{padding:1rem 1rem .6rem;border-bottom:1px solid rgba(255,255,255,.12)}
+.sb-brand h1{font-size:.95rem;font-weight:700;line-height:1.4}.sb-brand p{font-size:.68rem;opacity:.5;margin-top:.1rem}
+.sb-nav{flex:1;padding:.5rem .4rem;overflow-y:auto}
+.sb-sec{font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.35);padding:.7rem .7rem .25rem;font-weight:600}
+.ni{display:flex;align-items:center;gap:.55rem;padding:.5rem .7rem;border-radius:7px;cursor:pointer;font-size:.82rem;font-weight:500;color:rgba(255,255,255,.7);transition:all .15s;margin-bottom:1px}
+.ni:hover{background:rgba(255,255,255,.1);color:#fff}.ni.on{background:rgba(255,255,255,.18);color:#fff;font-weight:600}
+.ni svg{width:17px;height:17px;flex-shrink:0;opacity:.65}.ni.on svg{opacity:1}
+.ni .nb{margin-left:auto;background:rgba(255,255,255,.2);padding:.08rem .4rem;border-radius:99px;font-size:.68rem;font-weight:600}
+.main{margin-left:var(--sw);min-height:100vh;display:flex;flex-direction:column}
+.topbar{height:52px;background:var(--sf);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;padding:0 1.25rem;position:sticky;top:0;z-index:40}
+.topbar-t{font-size:1rem;font-weight:600}.ct{flex:1;padding:1.25rem 1.5rem}
+.page{display:none}.page.on{display:block}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--rl);box-shadow:var(--sh);padding:1.2rem;margin-bottom:.85rem}
+.card-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:.85rem}
+.card-t{font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:.45rem}
+.st{font-size:1.1rem;font-weight:700;margin-bottom:.85rem}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.65rem;margin-bottom:1.1rem}
+.stat{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:.85rem 1rem;text-align:center}
+.stat b{font-size:1.6rem;font-weight:800;color:var(--c1);display:block}.stat small{font-size:.75rem;color:var(--tx2)}
+.btn{display:inline-flex;align-items:center;gap:.3rem;padding:.4rem .8rem;border-radius:7px;border:none;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .15s;font-family:inherit}
+.bp{background:var(--c1);color:#fff}.bp:hover{background:var(--c1d)}
+.bo{background:transparent;color:var(--c1);border:1px solid var(--c1)}.bo:hover{background:var(--c1bg)}
+.bg{background:transparent;color:var(--tx2);border:1px solid var(--bd)}.bg:hover{background:var(--bg)}
+.bd{background:transparent;color:var(--dg);border:1px solid #fecaca}.bd:hover{background:#fef2f2}
+.bs{padding:.28rem .55rem;font-size:.75rem}.bl{padding:.55rem 1.1rem;font-size:.88rem}
+.fg{margin-bottom:.75rem}.fg label{display:block;font-weight:500;font-size:.8rem;margin-bottom:.25rem}
+.fg input,.fg select,.fg textarea{width:100%;padding:.45rem .65rem;border:1px solid var(--bd);border-radius:7px;font-size:.84rem;font-family:inherit;background:var(--sf);transition:border .15s}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--c1);box-shadow:0 0 0 3px rgba(5,150,105,.1)}
+.fg textarea{resize:vertical;min-height:65px}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+@media(max-width:640px){.fr{grid-template-columns:1fr}}
+.tw{overflow-x:auto;border-radius:var(--r)}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+th,td{padding:.6rem .7rem;text-align:left;border-bottom:1px solid var(--bd)}
+th{font-weight:600;color:var(--tx2);font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;background:var(--bg)}
 tbody tr:hover td{background:#f8fafb}
-
-/* ── Badge ────────────────────────── */
-.badge{display:inline-block;padding:.15rem .55rem;border-radius:999px;font-size:.72rem;font-weight:600;white-space:nowrap}
-.badge-green{background:#dcfce7;color:#166534}.badge-blue{background:#dbeafe;color:#1e40af}
-.badge-amber{background:#fef3c7;color:#92400e}.badge-red{background:#fee2e2;color:#991b1b}
-.badge-purple{background:#ede9fe;color:#5b21b6}.badge-gray{background:#f1f5f9;color:#475569}
-.badge-teal{background:#ccfbf1;color:#134e4a}
-
-/* ── Tags (colored pills) ────────── */
-.tag{display:inline-flex;align-items:center;gap:.25rem;padding:.25rem .65rem;border-radius:6px;font-size:.78rem;font-weight:500;border:1px solid}
-.tag-sm{padding:.15rem .45rem;font-size:.7rem}
-
-/* ── Workflow bar ─────────────────── */
-.wf-bar{display:flex;align-items:center;gap:0;margin-bottom:1.5rem;justify-content:center;flex-wrap:wrap}
-.wf-step{display:flex;align-items:center;gap:.4rem;padding:.55rem 1rem;border-radius:999px;font-size:.82rem;font-weight:500;color:var(--text-3);background:var(--surface);border:2px solid var(--border);transition:all .2s}
-.wf-step .wf-num{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;background:var(--border);color:var(--text-3);flex-shrink:0}
-.wf-step.active{color:var(--primary);border-color:var(--primary);background:var(--primary-bg)}.wf-step.active .wf-num{background:var(--primary);color:white}
-.wf-step.done{color:var(--primary);border-color:var(--primary-light);background:var(--primary-bg)}.wf-step.done .wf-num{background:var(--primary);color:white}
-.wf-line{width:32px;height:2px;background:var(--border);flex-shrink:0}.wf-line.done{background:var(--primary)}
-
-/* ── Scenario cards ──────────────── */
-.scenario-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem}
-.scenario-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
-.scenario-card:hover{border-color:var(--primary-light);box-shadow:var(--shadow-md)}
-.scenario-card .sc-top{width:100%;height:4px;position:absolute;top:0;left:0}
-.scenario-card h3{font-size:.95rem;font-weight:600;margin-bottom:.35rem}
-.scenario-card p{font-size:.8rem;color:var(--text-2);margin-bottom:.75rem}
-.scenario-card-meta{display:flex;gap:.5rem;flex-wrap:wrap}
-
-/* ── Package cards ───────────────── */
-.pkg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
-.pkg-card{background:var(--surface);border:2px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;transition:all .2s}
-.pkg-card:hover{border-color:var(--primary-light)}
-.pkg-card.selected{border-color:var(--primary);background:var(--primary-bg)}
-.pkg-card h4{font-size:.9rem;font-weight:600;margin-bottom:.25rem}
-.pkg-card p{font-size:.78rem;color:var(--text-2);margin-bottom:.5rem}
-.pkg-card-footer{display:flex;justify-content:space-between;align-items:center}
-
-/* ── Score items ─────────────────── */
-.score-item{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-bottom:.6rem}
-.si-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.6rem}
-.si-name{font-weight:600;font-size:.88rem}.si-desc{font-size:.76rem;color:var(--text-2);margin-top:.15rem}
-.si-slider{display:flex;align-items:center;gap:.85rem}
-.si-slider input[type="range"]{flex:1;-webkit-appearance:none;height:5px;border-radius:3px;background:var(--border-2);outline:none}
-.si-slider input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--primary);cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.2)}
-.si-val{min-width:48px;text-align:center;font-weight:700;font-size:1rem;padding:.2rem .4rem;border-radius:5px}
-.si-labels{display:flex;justify-content:space-between;font-size:.68rem;color:var(--text-3);margin-top:.2rem}
-
-/* ── Result ──────────────────────── */
-.result-hero{text-align:center;padding:1.5rem 1rem}
-.result-big{font-size:3.5rem;font-weight:800;line-height:1}
-.result-badge{display:inline-block;padding:.35rem 1rem;border-radius:999px;font-size:1rem;font-weight:700;margin-top:.5rem;margin-bottom:.5rem}
-.suggestion-list{list-style:none}
-.suggestion-list li{padding:.65rem .85rem;border-radius:8px;margin-bottom:.4rem;font-size:.85rem;border-left:4px solid}
-.sug-critical{background:#fef2f2;border-color:var(--danger);color:#7f1d1d}
-.sug-warning{background:#fffbeb;border-color:var(--warn);color:#78350f}
-.sug-success{background:#f0fdf4;border-color:var(--success);color:#14532d}
-
-/* ── History cards ───────────────── */
-.record-card{display:flex;align-items:center;gap:1rem;padding:1rem 1.25rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:.65rem;box-shadow:var(--shadow);transition:box-shadow .15s}
-.record-card:hover{box-shadow:var(--shadow-md)}
-.rc-score{font-size:1.6rem;font-weight:800;min-width:50px;text-align:center}
-.rc-info{flex:1}.rc-name{font-weight:600}.rc-meta{font-size:.78rem;color:var(--text-2);margin-top:.15rem}
-.rc-actions{display:flex;gap:.4rem}
-
-/* ── Rule grade visual ───────────── */
-.grade-bar{display:flex;border-radius:6px;overflow:hidden;height:28px;margin:.5rem 0}
-.grade-seg{display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:600;color:white}
-
-/* ── Modal ────────────────────────── */
-.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center}
-.modal-overlay.show{display:flex}
-.modal{background:var(--surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);width:92%;max-width:600px;max-height:88vh;overflow-y:auto;padding:1.5rem}
-.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;font-size:1.05rem;font-weight:600}
-.modal-close{background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-3);padding:.2rem}
-.modal-foot{display:flex;justify-content:flex-end;gap:.5rem;margin-top:1.25rem}
-
-/* ── Category tabs ───────────────── */
-.cat-tabs{display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.85rem}
-.cat-tab{padding:.3rem .75rem;border-radius:999px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:.78rem;font-weight:500;transition:all .15s}
-.cat-tab:hover{border-color:var(--primary);color:var(--primary)}.cat-tab.active{background:var(--primary);color:white;border-color:var(--primary)}
-
-/* ── Indicator check ─────────────── */
-.ind-check{display:flex;align-items:flex-start;gap:.65rem;padding:.65rem;border-radius:8px;border:1px solid var(--border);margin-bottom:.4rem;cursor:pointer;transition:all .15s;background:var(--surface)}
-.ind-check:hover{border-color:var(--primary-light)}.ind-check.selected{border-color:var(--primary);background:var(--primary-bg)}
-.ind-check input[type="checkbox"]{width:16px;height:16px;accent-color:var(--primary);margin-top:2px;flex-shrink:0}
-.ind-check-body{flex:1}.ind-check-name{font-weight:600;font-size:.85rem}.ind-check-desc{font-size:.76rem;color:var(--text-2)}
-
-/* ── Empty state ─────────────────── */
-.empty{text-align:center;padding:2.5rem 1rem;color:var(--text-3)}
-.empty svg{width:48px;height:48px;margin-bottom:.75rem;opacity:.4}
-
-/* ── Utils ────────────────────────── */
-.flex-between{display:flex;justify-content:space-between;align-items:center}
-.text-center{text-align:center}.mt-1{margin-top:.5rem}.mt-2{margin-top:1rem}.mb-1{margin-bottom:.5rem}
-.color-g{color:var(--success)}.color-b{color:var(--info)}.color-a{color:var(--warn)}.color-r{color:var(--danger)}
+.badge{display:inline-block;padding:.13rem .5rem;border-radius:99px;font-size:.7rem;font-weight:600;white-space:nowrap}
+.bg-g{background:#dcfce7;color:#166534}.bg-b{background:#dbeafe;color:#1e40af}.bg-a{background:#fef3c7;color:#92400e}.bg-r{background:#fee2e2;color:#991b1b}.bg-p{background:#ede9fe;color:#5b21b6}.bg-y{background:#f1f5f9;color:#475569}.bg-t{background:#ccfbf1;color:#134e4a}
+.ct-tabs{display:flex;gap:.25rem;flex-wrap:wrap;margin-bottom:.75rem}
+.ct-tab{padding:.28rem .7rem;border-radius:99px;border:1px solid var(--bd);background:var(--sf);cursor:pointer;font-size:.76rem;font-weight:500;transition:all .15s}
+.ct-tab:hover{border-color:var(--c1);color:var(--c1)}.ct-tab.on{background:var(--c1);color:#fff;border-color:var(--c1)}
+.wf{display:flex;align-items:center;gap:0;margin-bottom:1.25rem;justify-content:center;flex-wrap:wrap}
+.ws{display:flex;align-items:center;gap:.35rem;padding:.5rem .85rem;border-radius:99px;font-size:.8rem;font-weight:500;color:var(--tx3);background:var(--sf);border:2px solid var(--bd);transition:all .2s}
+.ws .wn{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;background:var(--bd);color:var(--tx3);flex-shrink:0}
+.ws.wact{color:var(--c1);border-color:var(--c1);background:var(--c1bg)}.ws.wact .wn{background:var(--c1);color:#fff}
+.ws.wdn{color:var(--c1);border-color:var(--c1l);background:var(--c1bg)}.ws.wdn .wn{background:var(--c1);color:#fff}
+.wl{width:28px;height:2px;background:var(--bd);flex-shrink:0}.wl.wdn{background:var(--c1)}
+.scg{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:.85rem}
+.scc{background:var(--sf);border:1px solid var(--bd);border-radius:var(--rl);padding:1.1rem;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.scc:hover{border-color:var(--c1l);box-shadow:var(--shm)}
+.scc .sct{width:100%;height:4px;position:absolute;top:0;left:0}
+.scc h3{font-size:.9rem;font-weight:600;margin-bottom:.3rem}.scc p{font-size:.78rem;color:var(--tx2);margin-bottom:.65rem}
+.scc-m{display:flex;gap:.4rem;flex-wrap:wrap}
+.si{background:var(--bg);border:1px solid var(--bd);border-radius:var(--r);padding:.9rem;margin-bottom:.5rem}
+.si-h{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem}
+.si-n{font-weight:600;font-size:.86rem}.si-d{font-size:.74rem;color:var(--tx2);margin-top:.1rem}
+.si-s{display:flex;align-items:center;gap:.75rem}
+.si-s input[type="range"]{flex:1;-webkit-appearance:none;height:5px;border-radius:3px;background:var(--bd2);outline:none}
+.si-s input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:17px;height:17px;border-radius:50%;background:var(--c1);cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.si-v{min-width:44px;text-align:center;font-weight:700;font-size:.95rem;padding:.15rem .35rem;border-radius:5px}
+.rh{text-align:center;padding:1.25rem .75rem}
+.rb{font-size:3.2rem;font-weight:800;line-height:1}
+.rg{display:inline-block;padding:.3rem .9rem;border-radius:99px;font-size:.95rem;font-weight:700;margin-top:.4rem;margin-bottom:.4rem}
+.sgl{list-style:none}.sgl li{padding:.55rem .75rem;border-radius:7px;margin-bottom:.35rem;font-size:.84rem;border-left:4px solid}
+.sg-c{background:#fef2f2;border-color:var(--dg);color:#7f1d1d}
+.sg-w{background:#fffbeb;border-color:var(--wn);color:#78350f}
+.sg-s{background:#f0fdf4;border-color:var(--ok);color:#14532d}
+.rc{display:flex;align-items:center;gap:.85rem;padding:.85rem 1.1rem;background:var(--sf);border:1px solid var(--bd);border-radius:var(--rl);margin-bottom:.55rem;box-shadow:var(--sh);transition:box-shadow .15s}
+.rc:hover{box-shadow:var(--shm)}
+.rc-s{font-size:1.5rem;font-weight:800;min-width:45px;text-align:center}
+.rc-i{flex:1}.rc-n{font-weight:600;font-size:.9rem}.rc-m{font-size:.76rem;color:var(--tx2);margin-top:.1rem}
+.rc-a{display:flex;gap:.35rem}
+.gb{display:flex;border-radius:6px;overflow:hidden;height:26px;margin:.4rem 0}
+.gs{display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:600;color:#fff}
+.mo{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center}
+.mo.show{display:flex}
+.ml{background:var(--sf);border-radius:var(--rl);box-shadow:var(--shm);width:92%;max-width:600px;max-height:88vh;overflow-y:auto;padding:1.4rem}
+.mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:.85rem;font-size:1rem;font-weight:600}
+.mc{background:none;border:none;font-size:1.15rem;cursor:pointer;color:var(--tx3);padding:.15rem}
+.mf{display:flex;justify-content:flex-end;gap:.4rem;margin-top:1.1rem}
+.ic{display:flex;align-items:flex-start;gap:.6rem;padding:.55rem;border-radius:7px;border:1px solid var(--bd);margin-bottom:.35rem;cursor:pointer;transition:all .15s;background:var(--sf)}
+.ic:hover{border-color:var(--c1l)}.ic.sel{border-color:var(--c1);background:var(--c1bg)}
+.ic input[type="checkbox"]{width:15px;height:15px;accent-color:var(--c1);margin-top:2px;flex-shrink:0}
+.ic-b{flex:1}.ic-n{font-weight:600;font-size:.82rem}.ic-d{font-size:.74rem;color:var(--tx2)}
+.pkg-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.85rem}
+.pkg-c{background:var(--sf);border:2px solid var(--bd);border-radius:var(--rl);padding:1.1rem;transition:all .2s}
+.pkg-c:hover{border-color:var(--c1l)}.pkg-c.sel{border-color:var(--c1);background:var(--c1bg)}
+.pkg-c h4{font-size:.88rem;font-weight:600;margin-bottom:.2rem}.pkg-c p{font-size:.76rem;color:var(--tx2);margin-bottom:.4rem}
+.empty{text-align:center;padding:2rem;color:var(--tx3)}
+.fb{display:flex;justify-content:space-between;align-items:center}
+.tc{text-align:center}
+.cg{color:var(--ok)}.cb{color:var(--in)}.ca{color:var(--wn)}.cr{color:var(--dg)}
 </style>
 </head>
 <body>
 
-<!-- ═══ Sidebar ═══ -->
 <aside class="sidebar">
-  <div class="sidebar-brand">
-    <h1>绿色低碳供应链<br>评估系统</h1>
-    <p>面向链主企业</p>
-  </div>
-  <nav class="sidebar-nav">
-    <div class="nav-section">总览</div>
-    <div class="nav-item active" data-page="dashboard">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      工作台
-    </div>
-
-    <div class="nav-section">评估配置</div>
-    <div class="nav-item" data-page="scenarios">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-      情景模式
-    </div>
-    <div class="nav-item" data-page="indicators">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
-      指标管理
-    </div>
-    <div class="nav-item" data-page="packages">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"/></svg>
-      指标包
-    </div>
-    <div class="nav-item" data-page="rules">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      评估规则
-    </div>
-
-    <div class="nav-section">评估执行</div>
-    <div class="nav-item" data-page="plans">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
-      评估方案
-      <span class="nav-badge" id="nav-plan-badge" style="display:none">0</span>
-    </div>
-    <div class="nav-item" data-page="execute">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-      执行评估
-    </div>
-    <div class="nav-item" data-page="records">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-      评估记录
-    </div>
-  </nav>
+<div class="sb-brand"><h1>绿色低碳供应链<br>评估系统</h1><p>面向链主企业</p></div>
+<nav class="sb-nav">
+  <div class="sb-sec">总览</div>
+  <div class="ni on" data-p="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>工作台</div>
+  <div class="sb-sec">供应商</div>
+  <div class="ni" data-p="suppliers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>供应商管理</div>
+  <div class="sb-sec">评估配置</div>
+  <div class="ni" data-p="scenarios"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>情景模式</div>
+  <div class="ni" data-p="indicators"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>指标管理</div>
+  <div class="ni" data-p="packages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"/></svg>指标包</div>
+  <div class="ni" data-p="rules"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>打分规则</div>
+  <div class="sb-sec">评估执行</div>
+  <div class="ni" data-p="plans"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>评估方案<span class="nb" id="nb-plan" style="display:none">0</span></div>
+  <div class="ni" data-p="execute"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>执行评估</div>
+  <div class="ni" data-p="records"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>评估记录</div>
+  <div class="sb-sec">系统</div>
+  <div class="ni" data-p="system"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>系统管理</div>
+</nav>
 </aside>
 
-<!-- ═══ Main ═══ -->
 <div class="main">
-<div class="topbar">
-  <div class="topbar-title" id="topbar-title">工作台</div>
-  <div class="topbar-actions" id="topbar-actions"></div>
+<div class="topbar"><div class="topbar-t" id="tt">工作台</div><div id="ta"></div></div>
+<div class="ct">
+  <div id="p-dashboard" class="page on"></div>
+  <div id="p-suppliers" class="page"></div>
+  <div id="p-scenarios" class="page"></div>
+  <div id="p-indicators" class="page"></div>
+  <div id="p-packages" class="page"></div>
+  <div id="p-rules" class="page"></div>
+  <div id="p-plans" class="page"></div>
+  <div id="p-execute" class="page"></div>
+  <div id="p-records" class="page"></div>
+  <div id="p-system" class="page"></div>
 </div>
-<div class="content">
-
-<!-- ═══ PAGE: Dashboard ═══ -->
-<div id="page-dashboard" class="page active">
-  <div class="stats" id="dash-stats"></div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem" id="dash-grid">
-    <div class="card" id="dash-flow"></div>
-    <div class="card" id="dash-scenarios"></div>
-  </div>
-</div>
-
-<!-- ═══ PAGE: Scenarios ═══ -->
-<div id="page-scenarios" class="page">
-  <div class="flex-between mb-1">
-    <div class="section-title">情景模式</div>
-    <button class="btn btn-primary" onclick="openScenarioModal()">+ 新建情景</button>
-  </div>
-  <p style="color:var(--text-2);font-size:.85rem;margin-bottom:1rem">预配置的评估场景，包含指标包组合与评估规则，可一键创建评估方案。</p>
-  <div class="scenario-grid" id="scenario-list"></div>
 </div>
 
-<!-- ═══ PAGE: Indicators ═══ -->
-<div id="page-indicators" class="page">
-  <div class="flex-between mb-1">
-    <div class="section-title">评估指标管理</div>
-    <button class="btn btn-primary" onclick="openIndicatorModal()">+ 新增指标</button>
-  </div>
-  <div class="cat-tabs" id="ind-cat-tabs"></div>
-  <div class="card" style="padding:0">
-    <div class="table-wrap"><table><thead><tr><th>编号</th><th>指标名称</th><th>类别</th><th>描述</th><th>单位</th><th>数据类型</th><th>操作</th></tr></thead><tbody id="ind-tbody"></tbody></table></div>
-  </div>
-</div>
-
-<!-- ═══ PAGE: Packages ═══ -->
-<div id="page-packages" class="page">
-  <div class="flex-between mb-1">
-    <div class="section-title">指标包管理</div>
-    <button class="btn btn-primary" onclick="openPackageModal()">+ 新建指标包</button>
-  </div>
-  <p style="color:var(--text-2);font-size:.85rem;margin-bottom:1rem">将相关指标打包，便于在情景模式和评估方案中快速引用。</p>
-  <div class="pkg-grid" id="pkg-list"></div>
-</div>
-
-<!-- ═══ PAGE: Rules ═══ -->
-<div id="page-rules" class="page">
-  <div class="flex-between mb-1">
-    <div class="section-title">评估规则管理</div>
-    <button class="btn btn-primary" onclick="openRuleModal()">+ 新建规则</button>
-  </div>
-  <p style="color:var(--text-2);font-size:.85rem;margin-bottom:1rem">定义评分等级、及格线、权重模式等评估判定规则。</p>
-  <div id="rules-list"></div>
-</div>
-
-<!-- ═══ PAGE: Plans ═══ -->
-<div id="page-plans" class="page">
-  <div class="flex-between mb-1">
-    <div class="section-title">评估方案</div>
-    <button class="btn btn-primary" onclick="showPage('execute')">+ 创建方案</button>
-  </div>
-  <div id="plans-list"></div>
-</div>
-
-<!-- ═══ PAGE: Execute (create plan + score) ═══ -->
-<div id="page-execute" class="page">
-  <div class="wf-bar" id="exec-wf"></div>
-  <div id="exec-step-1" class="exec-step"></div>
-  <div id="exec-step-2" class="exec-step" style="display:none"></div>
-  <div id="exec-step-3" class="exec-step" style="display:none"></div>
-  <div id="exec-step-4" class="exec-step" style="display:none"></div>
-</div>
-
-<!-- ═══ PAGE: Records ═══ -->
-<div id="page-records" class="page">
-  <div class="flex-between mb-1">
-    <div class="section-title">评估记录</div>
-  </div>
-  <div id="records-list"></div>
-</div>
-
-</div></div>
-
-<!-- ═══ Modals ═══ -->
-<div class="modal-overlay" id="modal-indicator"><div class="modal"><div class="modal-head"><span id="mi-title">新增指标</span><button class="modal-close" onclick="closeModal('modal-indicator')">&times;</button></div><div id="mi-body"></div></div></div>
-<div class="modal-overlay" id="modal-package"><div class="modal"><div class="modal-head"><span id="mp-title">新建指标包</span><button class="modal-close" onclick="closeModal('modal-package')">&times;</button></div><div id="mp-body"></div></div></div>
-<div class="modal-overlay" id="modal-rule"><div class="modal"><div class="modal-head"><span id="mr-title">新建规则</span><button class="modal-close" onclick="closeModal('modal-rule')">&times;</button></div><div id="mr-body"></div></div></div>
-<div class="modal-overlay" id="modal-scenario"><div class="modal" style="max-width:650px"><div class="modal-head"><span id="ms-title">新建情景</span><button class="modal-close" onclick="closeModal('modal-scenario')">&times;</button></div><div id="ms-body"></div></div></div>
-<div class="modal-overlay" id="modal-detail"><div class="modal" style="max-width:700px"><div class="modal-head"><span>评估详情</span><button class="modal-close" onclick="closeModal('modal-detail')">&times;</button></div><div id="md-body"></div></div></div>
+<div class="mo" id="m-ind"><div class="ml"><div class="mh"><span id="mi-t">指标</span><button class="mc" onclick="cm('m-ind')">&times;</button></div><div id="mi-b"></div></div></div>
+<div class="mo" id="m-pkg"><div class="ml"><div class="mh"><span id="mp-t">指标包</span><button class="mc" onclick="cm('m-pkg')">&times;</button></div><div id="mp-b"></div></div></div>
+<div class="mo" id="m-rule"><div class="ml"><div class="mh"><span id="mr-t">规则</span><button class="mc" onclick="cm('m-rule')">&times;</button></div><div id="mr-b"></div></div></div>
+<div class="mo" id="m-sc"><div class="ml" style="max-width:640px"><div class="mh"><span id="ms-t">情景</span><button class="mc" onclick="cm('m-sc')">&times;</button></div><div id="ms-b"></div></div></div>
+<div class="mo" id="m-sup"><div class="ml"><div class="mh"><span id="mu-t">供应商</span><button class="mc" onclick="cm('m-sup')">&times;</button></div><div id="mu-b"></div></div></div>
+<div class="mo" id="m-det"><div class="ml" style="max-width:700px"><div class="mh"><span>详情</span><button class="mc" onclick="cm('m-det')">&times;</button></div><div id="md-b"></div></div></div>
 
 <script>
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// State
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-let D = {}; // all data cache
-let execState = { step:1, scenarioId:'', planData:{}, selectedPkgs:[], allInds:[], scores:{}, weights:{} };
-let indCatFilter = '全部';
-const PAGES = {dashboard:'工作台',scenarios:'情景模式',indicators:'指标管理',packages:'指标包',rules:'评估规则',plans:'评估方案',execute:'执行评估',records:'评估记录'};
-
-// ━━━━ Fetch helpers ━━━━
-const api = {
-  get: u => fetch(u).then(r=>r.json()),
-  post: (u,d) => fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)}).then(r=>r.json()),
-  put: (u,d) => fetch(u,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)}).then(r=>r.json()),
-  del: u => fetch(u,{method:'DELETE'}).then(r=>r.json()),
+let D={};
+let EX={step:1,sid:'',plan:{},pkgs:[],inds:[],scores:{},weights:{}};
+let indF='全部',supF='all';
+const PN={dashboard:'工作台',suppliers:'供应商管理',scenarios:'情景模式',indicators:'指标管理',packages:'指标包',rules:'打分规则',plans:'评估方案',execute:'执行评估',records:'评估记录',system:'系统管理'};
+const A={
+  g:u=>fetch(u).then(r=>r.json()),
+  p:(u,d)=>fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)}).then(r=>r.json()),
+  u:(u,d)=>fetch(u,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)}).then(r=>r.json()),
+  d:u=>fetch(u,{method:'DELETE'}).then(r=>r.json()),
 };
-
-async function loadAll() {
-  const [indicators,packages,rules,scenarios,plans,records,stats] = await Promise.all([
-    api.get('/api/indicators'),api.get('/api/packages'),api.get('/api/rules'),
-    api.get('/api/scenarios'),api.get('/api/plans'),api.get('/api/records'),api.get('/api/statistics')
-  ]);
-  D = {indicators,packages,rules,scenarios,plans,records,stats};
-  const b = document.getElementById('nav-plan-badge');
-  if(D.stats.pendingPlans>0){b.style.display='';b.textContent=D.stats.pendingPlans}else{b.style.display='none'}
+async function LA(){
+  const[a,b,c,d,e,f,g,h]=await Promise.all([A.g('/api/indicators'),A.g('/api/packages'),A.g('/api/rules'),A.g('/api/scenarios'),A.g('/api/suppliers'),A.g('/api/plans'),A.g('/api/records'),A.g('/api/statistics')]);
+  D={indicators:a,packages:b,rules:c,scenarios:d,suppliers:e,plans:f,records:g,stats:h};
+  const nb=document.getElementById('nb-plan');
+  if(D.stats.pendingPlans>0){nb.style.display='';nb.textContent=D.stats.pendingPlans}else nb.style.display='none';
 }
-
-// ━━━━ Navigation ━━━━
-function showPage(page) {
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.getElementById('page-'+page).classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
-  document.getElementById('topbar-title').textContent=PAGES[page]||page;
-  document.getElementById('topbar-actions').innerHTML='';
-  const loaders = {dashboard:loadDashboard,scenarios:loadScenarios,indicators:loadIndicators,packages:loadPackages,rules:loadRules,plans:loadPlans,execute:initExec,records:loadRecords};
-  if(loaders[page]) loaders[page]();
+function nav(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));
+  document.getElementById('p-'+p).classList.add('on');
+  document.querySelectorAll('.ni').forEach(n=>n.classList.toggle('on',n.dataset.p===p));
+  document.getElementById('tt').textContent=PN[p]||p;
+  document.getElementById('ta').innerHTML='';
+  ({dashboard:pgDash,suppliers:pgSup,scenarios:pgSc,indicators:pgInd,packages:pgPkg,rules:pgRule,plans:pgPlan,execute:pgExec,records:pgRec,system:pgSys})[p]?.();
 }
-document.querySelectorAll('.nav-item').forEach(n=>n.addEventListener('click',()=>showPage(n.dataset.page)));
-function closeModal(id){document.getElementById(id).classList.remove('show')}
+document.querySelectorAll('.ni').forEach(n=>n.addEventListener('click',()=>nav(n.dataset.p)));
+function cm(id){document.getElementById(id).classList.remove('show')}
+function om(id){document.getElementById(id).classList.add('show')}
+function gradeClass(s){return s>=90?'cg':s>=75?'cb':s>=60?'ca':'cr'}
+function gradeBadge(s){return s>=90?'bg-g':s>=75?'bg-b':s>=60?'bg-a':'bg-r'}
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// Dashboard
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-async function loadDashboard() {
-  await loadAll();
-  const s = D.stats;
-  document.getElementById('dash-stats').innerHTML = `
-    <div class="stat"><div class="stat-val">${s.indicatorCount}</div><div class="stat-label">评估指标</div></div>
-    <div class="stat"><div class="stat-val">${s.packageCount}</div><div class="stat-label">指标包</div></div>
-    <div class="stat"><div class="stat-val">${s.scenarioCount}</div><div class="stat-label">情景模式</div></div>
-    <div class="stat"><div class="stat-val">${s.planCount}</div><div class="stat-label">评估方案</div></div>
-    <div class="stat"><div class="stat-val">${s.totalRecords}</div><div class="stat-label">评估记录</div></div>
-    <div class="stat"><div class="stat-val">${s.avgScore||'-'}</div><div class="stat-label">平均得分</div></div>
-    <div class="stat"><div class="stat-val">${s.passRate}%</div><div class="stat-label">通过率</div></div>
-    <div class="stat"><div class="stat-val">${s.pendingPlans}</div><div class="stat-label">待评估方案</div></div>`;
-
-  document.getElementById('dash-flow').innerHTML = `<div class="card-title">评估流程</div>
-    <div style="padding:.5rem 0">
-    <div style="display:flex;align-items:flex-start;gap:.75rem;margin-bottom:1rem">
-      <div style="width:28px;height:28px;border-radius:50%;background:var(--primary);color:white;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0">1</div>
-      <div><div style="font-weight:600;font-size:.88rem">选择情景模式</div><div style="font-size:.78rem;color:var(--text-2)">根据评估场景选择预配置的情景模式，自动关联指标包与规则</div></div>
-    </div>
-    <div style="display:flex;align-items:flex-start;gap:.75rem;margin-bottom:1rem">
-      <div style="width:28px;height:28px;border-radius:50%;background:var(--primary);color:white;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0">2</div>
-      <div><div style="font-weight:600;font-size:.88rem">创建评估方案</div><div style="font-size:.78rem;color:var(--text-2)">填写被评估企业信息，可自定义调整指标包和权重</div></div>
-    </div>
-    <div style="display:flex;align-items:flex-start;gap:.75rem;margin-bottom:1rem">
-      <div style="width:28px;height:28px;border-radius:50%;background:var(--primary);color:white;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0">3</div>
-      <div><div style="font-weight:600;font-size:.88rem">执行指标评分</div><div style="font-size:.78rem;color:var(--text-2)">根据实际情况对每项指标进行评分打分</div></div>
-    </div>
-    <div style="display:flex;align-items:flex-start;gap:.75rem">
-      <div style="width:28px;height:28px;border-radius:50%;background:var(--primary);color:white;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0">4</div>
-      <div><div style="font-weight:600;font-size:.88rem">生成评估结果</div><div style="font-size:.78rem;color:var(--text-2)">按规则自动计算得分、评级并生成改进建议</div></div>
-    </div>
-    </div>
-    <div class="text-center mt-1"><button class="btn btn-primary" onclick="showPage('execute')">立即开始评估</button></div>`;
-
-  document.getElementById('dash-scenarios').innerHTML = `<div class="card-title">快捷情景</div>` +
-    D.scenarios.slice(0,5).map(sc=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:.55rem 0;border-bottom:1px solid var(--border)">
-      <div><div style="font-weight:500;font-size:.88rem">${sc.name}</div><div style="font-size:.75rem;color:var(--text-2)">${sc.industry} · ${sc.applicableScope}</div></div>
-      <button class="btn btn-outline btn-sm" onclick="quickPlan('${sc.id}')">创建方案</button>
-    </div>`).join('');
-}
-
-function quickPlan(sid) { execState.scenarioId=sid; showPage('execute'); }
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// Scenarios
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-async function loadScenarios() {
-  await loadAll();
-  const pkgMap = Object.fromEntries(D.packages.map(p=>[p.id,p]));
-  const ruleMap = Object.fromEntries(D.rules.map(r=>[r.id,r]));
-  const el = document.getElementById('scenario-list');
-  if(!D.scenarios.length){el.innerHTML='<div class="empty"><p>暂无情景模式</p></div>';return}
-  el.innerHTML = D.scenarios.map(sc=>{
-    const rule = ruleMap[sc.ruleId];
-    const pkgs = sc.packageIds.map(pid=>pkgMap[pid]).filter(Boolean);
-    const indCount = new Set(pkgs.flatMap(p=>p.indicatorIds)).size;
-    return `<div class="scenario-card" onclick="quickPlan('${sc.id}')">
-      <div class="sc-top" style="background:${pkgs[0]?.color||'var(--primary)'}"></div>
-      <h3>${sc.name}</h3>
-      <p>${sc.description}</p>
-      <div class="scenario-card-meta">
-        <span class="badge badge-green">${sc.industry}</span>
-        <span class="badge badge-blue">${sc.applicableScope}</span>
-        <span class="badge badge-purple">${indCount} 项指标</span>
-        <span class="badge badge-gray">${rule?rule.name:'--'}</span>
+// ━━ Dashboard ━━
+async function pgDash(){
+  await LA();const s=D.stats;
+  document.getElementById('p-dashboard').innerHTML=`
+  <div class="stats">
+    <div class="stat"><b>${s.supplierCount}</b><small>供应商总数</small></div>
+    <div class="stat"><b>${s.activeSuppliers}</b><small>活跃供应商</small></div>
+    <div class="stat"><b>${s.ratedSuppliers}</b><small>已评级</small></div>
+    <div class="stat"><b>${s.totalRecords}</b><small>评估次数</small></div>
+    <div class="stat"><b>${s.avgScore||'-'}</b><small>平均得分</small></div>
+    <div class="stat"><b>${s.passRate}%</b><small>通过率</small></div>
+    <div class="stat"><b>${s.pendingPlans}</b><small>待评估</small></div>
+    <div class="stat"><b>${s.indicatorCount}</b><small>指标数</small></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:.85rem">
+    <div class="card"><div class="card-t">评估闭环流程</div>
+      <div style="padding:.4rem 0">${[
+        ['1','录入供应商','在供应商管理中添加供应商基本信息'],
+        ['2','选择情景模式','根据评估目的选择预配置的评估场景'],
+        ['3','创建评估方案','选择供应商，关联指标包与打分规则'],
+        ['4','执行指标评分','对方案中的每项指标进行打分'],
+        ['5','生成评估结果','自动计算得分、评级并生成改进建议'],
+        ['6','更新供应商评级','评估结果自动回写供应商绿色评级'],
+      ].map(([n,t,d])=>`<div style="display:flex;align-items:flex-start;gap:.65rem;margin-bottom:.75rem">
+        <div style="width:26px;height:26px;border-radius:50%;background:var(--c1);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;flex-shrink:0">${n}</div>
+        <div><div style="font-weight:600;font-size:.84rem">${t}</div><div style="font-size:.75rem;color:var(--tx2)">${d}</div></div></div>`).join('')}
       </div>
-      <div style="margin-top:.75rem;font-size:.78rem;color:var(--text-2)">
-        指标包：${pkgs.map(p=>`<span class="badge badge-teal" style="margin-right:.25rem">${p.name}</span>`).join('')}
-      </div>
-      <div style="display:flex;justify-content:flex-end;gap:.4rem;margin-top:.75rem">
-        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();editScenario('${sc.id}')">编辑</button>
-        <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();delScenario('${sc.id}')">删除</button>
-      </div>
-    </div>`;
-  }).join('');
+      <div class="tc" style="margin-top:.5rem"><button class="btn bp" onclick="nav('execute')">立即开始评估</button></div>
+    </div>
+    <div class="card"><div class="card-t">供应商绿色评级分布</div>
+      ${D.suppliers.length?`<div style="margin-top:.5rem">${['优秀','良好','一般','待改进','通过','卓越','合格','不合格','不通过',''].map(g=>{
+        const cnt=D.suppliers.filter(s=>s.greenRating===g||(g===''&&!s.greenRating)).length;
+        if(!cnt)return '';
+        const lbl=g||'未评级';
+        const cl=g?({优秀:'bg-g',良好:'bg-b',一般:'bg-a',待改进:'bg-r',通过:'bg-g',卓越:'bg-g',合格:'bg-a',不合格:'bg-r',不通过:'bg-r'}[g]||'bg-y'):'bg-y';
+        return `<div class="fb" style="padding:.35rem 0;border-bottom:1px solid var(--bd)"><span><span class="badge ${cl}">${lbl}</span></span><strong>${cnt}</strong></div>`;
+      }).join('')}</div>`:'<div class="empty"><p>暂无供应商数据</p></div>'}
+      <div class="tc" style="margin-top:.75rem"><button class="btn bo bs" onclick="nav('suppliers')">查看供应商列表</button></div>
+    </div>
+  </div>`;
 }
 
-function openScenarioModal(sc) {
-  document.getElementById('ms-title').textContent = sc?'编辑情景':'新建情景';
-  const pkgOpts = D.packages.map(p=>`<label class="ind-check ${sc&&sc.packageIds.includes(p.id)?'selected':''}" onclick="this.classList.toggle('selected');this.querySelector('input').checked=!this.querySelector('input').checked">
-    <input type="checkbox" value="${p.id}" ${sc&&sc.packageIds.includes(p.id)?'checked':''}>
-    <div class="ind-check-body"><div class="ind-check-name">${p.name}</div><div class="ind-check-desc">${p.description}</div></div></label>`).join('');
-  const ruleOpts = D.rules.map(r=>`<option value="${r.id}" ${sc&&sc.ruleId===r.id?'selected':''}>${r.name}</option>`).join('');
-  document.getElementById('ms-body').innerHTML = `
-    <input type="hidden" id="sc-edit-id" value="${sc?sc.id:''}">
-    <div class="form-row"><div class="form-group"><label>情景名称 *</label><input id="sc-name" value="${sc?sc.name:''}"></div>
-    <div class="form-group"><label>适用行业</label><input id="sc-industry" value="${sc?sc.industry:'通用'}"></div></div>
-    <div class="form-group"><label>描述</label><textarea id="sc-desc">${sc?sc.description:''}</textarea></div>
-    <div class="form-group"><label>适用范围</label><input id="sc-scope" value="${sc?sc.applicableScope:''}"></div>
-    <div class="form-group"><label>评估规则</label><select id="sc-rule">${ruleOpts}</select></div>
-    <div class="form-group"><label>选择指标包</label>${pkgOpts}</div>
-    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('modal-scenario')">取消</button><button class="btn btn-primary" onclick="saveScenario()">保存</button></div>`;
-  document.getElementById('modal-scenario').classList.add('show');
-}
-function editScenario(id){const sc=D.scenarios.find(s=>s.id===id);if(sc)openScenarioModal(sc)}
-async function saveScenario(){
-  const id=document.getElementById('sc-edit-id').value;
-  const data={name:document.getElementById('sc-name').value.trim(),description:document.getElementById('sc-desc').value.trim(),
-    industry:document.getElementById('sc-industry').value.trim(),applicableScope:document.getElementById('sc-scope').value.trim(),
-    ruleId:document.getElementById('sc-rule').value,icon:'leaf',
-    packageIds:[...document.querySelectorAll('#ms-body input[type=checkbox]:checked')].map(c=>c.value)};
-  if(!data.name){alert('请填写情景名称');return}
-  if(id) await api.put('/api/scenarios/'+id,data); else await api.post('/api/scenarios',data);
-  closeModal('modal-scenario');loadScenarios();
-}
-async function delScenario(id){if(!confirm('确定删除此情景？'))return;await api.del('/api/scenarios/'+id);loadScenarios()}
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// Indicators
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-async function loadIndicators() {
-  await loadAll();
-  const cats = ['全部',...new Set(D.indicators.map(i=>i.category))];
-  document.getElementById('ind-cat-tabs').innerHTML = cats.map(c=>`<button class="cat-tab ${c===indCatFilter?'active':''}" onclick="indCatFilter='${c}';renderIndTable()">${c}</button>`).join('');
-  renderIndTable();
-}
-function renderIndTable() {
-  const list = indCatFilter==='全部'?D.indicators:D.indicators.filter(i=>i.category===indCatFilter);
-  const tb = document.getElementById('ind-tbody');
-  if(!list.length){tb.innerHTML='<tr><td colspan="7" class="text-center" style="padding:2rem;color:var(--text-3)">暂无数据</td></tr>';return}
-  tb.innerHTML = list.map(ind=>`<tr>
-    <td style="font-family:monospace;font-size:.8rem">${ind.id}</td>
-    <td style="font-weight:500">${ind.name}</td>
-    <td><span class="badge badge-green">${ind.category}</span></td>
-    <td style="max-width:220px;font-size:.8rem;color:var(--text-2)">${ind.description}</td>
-    <td>${ind.unit}</td>
-    <td><span class="badge ${ind.dataType==='quantitative'?'badge-blue':'badge-amber'}">${ind.dataType==='quantitative'?'定量':'定性'}</span></td>
-    <td><button class="btn btn-ghost btn-sm" onclick='openIndicatorModal(${JSON.stringify(ind).replace(/'/g,"&#39;")})'>编辑</button>
-    <button class="btn btn-danger btn-sm" onclick="delIndicator('${ind.id}')">删除</button></td>
-  </tr>`).join('');
-}
-function openIndicatorModal(ind) {
-  document.getElementById('mi-title').textContent = ind?'编辑指标':'新增指标';
-  const cats = [...new Set(D.indicators.map(i=>i.category))];
-  const catOpts = cats.map(c=>`<option ${ind&&ind.category===c?'selected':''}>${c}</option>`).join('');
-  document.getElementById('mi-body').innerHTML = `
-    <input type="hidden" id="ind-edit-id" value="${ind?ind.id:''}">
-    <div class="form-row"><div class="form-group"><label>指标名称 *</label><input id="ind-name" value="${ind?ind.name:''}"></div>
-    <div class="form-group"><label>类别 *</label><input id="ind-cat" value="${ind?ind.category:''}" list="cat-list"><datalist id="cat-list">${catOpts}</datalist></div></div>
-    <div class="form-group"><label>描述</label><textarea id="ind-desc">${ind?ind.description:''}</textarea></div>
-    <div class="form-row"><div class="form-group"><label>单位</label><input id="ind-unit" value="${ind?ind.unit:'%'}"></div>
-    <div class="form-group"><label>数据类型</label><select id="ind-dtype"><option value="quantitative" ${!ind||ind.dataType==='quantitative'?'selected':''}>定量</option><option value="qualitative" ${ind&&ind.dataType==='qualitative'?'selected':''}>定性</option></select></div></div>
-    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('modal-indicator')">取消</button><button class="btn btn-primary" onclick="saveIndicator()">保存</button></div>`;
-  document.getElementById('modal-indicator').classList.add('show');
-}
-async function saveIndicator(){
-  const id=document.getElementById('ind-edit-id').value;
-  const data={name:document.getElementById('ind-name').value.trim(),category:document.getElementById('ind-cat').value.trim(),
-    description:document.getElementById('ind-desc').value.trim(),unit:document.getElementById('ind-unit').value.trim(),
-    dataType:document.getElementById('ind-dtype').value};
-  if(!data.name||!data.category){alert('请填写名称和类别');return}
-  if(id) await api.put('/api/indicators/'+id,data); else await api.post('/api/indicators',data);
-  closeModal('modal-indicator');await loadAll();loadIndicators();
-}
-async function delIndicator(id){if(!confirm('确定删除？'))return;await api.del('/api/indicators/'+id);await loadAll();loadIndicators()}
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// Packages
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-async function loadPackages() {
-  await loadAll();
-  const indMap = Object.fromEntries(D.indicators.map(i=>[i.id,i]));
-  const el = document.getElementById('pkg-list');
-  if(!D.packages.length){el.innerHTML='<div class="empty"><p>暂无指标包</p></div>';return}
-  el.innerHTML = D.packages.map(pkg=>{
-    const inds = pkg.indicatorIds.map(id=>indMap[id]).filter(Boolean);
-    const cats = [...new Set(inds.map(i=>i.category))];
-    return `<div class="pkg-card">
-      <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem">
-        <div style="width:10px;height:10px;border-radius:50%;background:${pkg.color||'var(--primary)'}"></div>
-        <h4>${pkg.name}</h4>
-      </div>
-      <p>${pkg.description}</p>
-      <div style="margin-bottom:.65rem">${cats.map(c=>`<span class="badge badge-green" style="margin-right:.25rem;margin-bottom:.2rem">${c}</span>`).join('')}</div>
-      <div style="font-size:.78rem;color:var(--text-2);margin-bottom:.5rem">包含 <strong>${inds.length}</strong> 项指标：${inds.slice(0,5).map(i=>i.name).join('、')}${inds.length>5?'...':''}</div>
-      <div class="pkg-card-footer">
-        <span class="badge badge-blue">${inds.length} 项</span>
-        <div><button class="btn btn-ghost btn-sm" onclick="editPackage('${pkg.id}')">编辑</button>
-        <button class="btn btn-danger btn-sm" onclick="delPackage('${pkg.id}')">删除</button></div>
-      </div></div>`;
-  }).join('');
-}
-function openPackageModal(pkg) {
-  document.getElementById('mp-title').textContent=pkg?'编辑指标包':'新建指标包';
-  const cats = [...new Set(D.indicators.map(i=>i.category))];
-  let indHtml = '';
-  cats.forEach(cat=>{
-    const inds = D.indicators.filter(i=>i.category===cat);
-    indHtml += `<div style="font-weight:600;font-size:.82rem;margin:.6rem 0 .3rem;color:var(--primary)">${cat}</div>`;
-    inds.forEach(ind=>{
-      const chk = pkg&&pkg.indicatorIds.includes(ind.id);
-      indHtml += `<label class="ind-check ${chk?'selected':''}" style="padding:.4rem .5rem" onclick="this.classList.toggle('selected');this.querySelector('input').checked=!this.querySelector('input').checked">
-        <input type="checkbox" value="${ind.id}" ${chk?'checked':''}>
-        <div class="ind-check-body"><div class="ind-check-name" style="font-size:.82rem">${ind.name}</div></div></label>`;
-    });
+// ━━ Suppliers ━━
+async function pgSup(){
+  await LA();
+  const el=document.getElementById('p-suppliers');
+  const filters=['all','active','inactive','rated','unrated'];
+  const labels={all:'全部',active:'活跃',inactive:'停用',rated:'已评级',unrated:'未评级'};
+  const list=D.suppliers.filter(s=>{
+    if(supF==='active')return s.status==='active';if(supF==='inactive')return s.status!=='active';
+    if(supF==='rated')return !!s.greenRating;if(supF==='unrated')return !s.greenRating;return true;
   });
-  document.getElementById('mp-body').innerHTML = `
-    <input type="hidden" id="pkg-edit-id" value="${pkg?pkg.id:''}">
-    <div class="form-group"><label>指标包名称 *</label><input id="pkg-name" value="${pkg?pkg.name:''}"></div>
-    <div class="form-group"><label>描述</label><textarea id="pkg-desc">${pkg?pkg.description:''}</textarea></div>
-    <div class="form-group"><label>颜色</label><input id="pkg-color" type="color" value="${pkg?pkg.color:'#059669'}" style="height:36px;padding:2px"></div>
-    <div class="form-group"><label>选择指标</label><div style="max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:.5rem">${indHtml}</div></div>
-    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('modal-package')">取消</button><button class="btn btn-primary" onclick="savePackage()">保存</button></div>`;
-  document.getElementById('modal-package').classList.add('show');
+  el.innerHTML=`<div class="fb" style="margin-bottom:.75rem"><div class="st" style="margin:0">供应商管理</div><button class="btn bp" onclick="openSupModal()">+ 新增供应商</button></div>
+    <div class="ct-tabs">${filters.map(f=>`<button class="ct-tab ${f===supF?'on':''}" onclick="supF='${f}';pgSup()">${labels[f]} (${f==='all'?D.suppliers.length:D.suppliers.filter(s=>{if(f==='active')return s.status==='active';if(f==='inactive')return s.status!=='active';if(f==='rated')return !!s.greenRating;if(f==='unrated')return !s.greenRating;return true}).length})</button>`).join('')}</div>
+    <div class="card" style="padding:0"><div class="tw"><table><thead><tr><th>编号</th><th>名称</th><th>行业</th><th>层级</th><th>联系人</th><th>状态</th><th>绿色评级</th><th>最新得分</th><th>评估次数</th><th>操作</th></tr></thead>
+    <tbody>${list.length?list.map(s=>{
+      const rc=s.greenRating?({优秀:'bg-g',良好:'bg-b',一般:'bg-a',待改进:'bg-r',通过:'bg-g',卓越:'bg-g',合格:'bg-a',不合格:'bg-r',不通过:'bg-r'}[s.greenRating]||'bg-y'):'bg-y';
+      return `<tr>
+        <td style="font-family:monospace;font-size:.78rem">${s.code}</td>
+        <td style="font-weight:500">${s.name}</td>
+        <td><span class="badge bg-b">${s.industry}</span></td>
+        <td><span class="badge bg-p">${s.tier}</span></td>
+        <td>${s.contact}</td>
+        <td><span class="badge ${s.status==='active'?'bg-g':'bg-r'}">${s.status==='active'?'活跃':'停用'}</span></td>
+        <td><span class="badge ${rc}">${s.greenRating||'未评级'}</span></td>
+        <td class="${gradeClass(s.latestScore)}" style="font-weight:600">${s.latestScore||'-'}</td>
+        <td>${s.assessCount||0}</td>
+        <td><button class="btn bg bs" onclick="viewSup('${s.id}')">详情</button> <button class="btn bg bs" onclick="editSup('${s.id}')">编辑</button> <button class="btn bd bs" onclick="delSup('${s.id}')">删除</button></td></tr>`}).join(''):'<tr><td colspan="10" class="tc" style="padding:2rem;color:var(--tx3)">暂无数据</td></tr>'}</tbody></table></div></div>`;
 }
-function editPackage(id){const pkg=D.packages.find(p=>p.id===id);if(pkg)openPackageModal(pkg)}
-async function savePackage(){
-  const id=document.getElementById('pkg-edit-id').value;
-  const data={name:document.getElementById('pkg-name').value.trim(),description:document.getElementById('pkg-desc').value.trim(),
-    color:document.getElementById('pkg-color').value,
-    indicatorIds:[...document.querySelectorAll('#mp-body input[type=checkbox]:checked')].map(c=>c.value)};
-  if(!data.name){alert('请填写名称');return}
-  if(id) await api.put('/api/packages/'+id,data); else await api.post('/api/packages',data);
-  closeModal('modal-package');await loadAll();loadPackages();
+function openSupModal(s){
+  document.getElementById('mu-t').textContent=s?'编辑供应商':'新增供应商';
+  document.getElementById('mu-b').innerHTML=`
+    <input type="hidden" id="su-id" value="${s?s.id:''}">
+    <div class="fr"><div class="fg"><label>供应商编号</label><input id="su-code" value="${s?s.code:'SUP-'+new Date().getFullYear()+'-'}"></div>
+    <div class="fg"><label>名称 *</label><input id="su-name" value="${s?s.name:''}"></div></div>
+    <div class="fr"><div class="fg"><label>行业</label><select id="su-ind"><option>制造业</option><option>电子信息</option><option>化工医药</option><option>食品饮料</option><option>汽车工业</option><option>纺织服装</option><option>建筑建材</option><option>物流运输</option><option>零售消费</option><option>其他</option></select></div>
+    <div class="fg"><label>层级</label><select id="su-tier"><option>一级</option><option>二级</option><option>三级</option></select></div></div>
+    <div class="fr"><div class="fg"><label>联系人</label><input id="su-ct" value="${s?s.contact:''}"></div>
+    <div class="fg"><label>电话</label><input id="su-ph" value="${s?s.phone:''}"></div></div>
+    <div class="fr"><div class="fg"><label>邮箱</label><input id="su-em" value="${s?s.email:''}"></div>
+    <div class="fg"><label>状态</label><select id="su-st"><option value="active" ${!s||s.status==='active'?'selected':''}>活跃</option><option value="inactive" ${s&&s.status==='inactive'?'selected':''}>停用</option><option value="blacklisted" ${s&&s.status==='blacklisted'?'selected':''}>黑名单</option></select></div></div>
+    <div class="fg"><label>地址</label><input id="su-addr" value="${s?s.address:''}"></div>
+    <div class="mf"><button class="btn bg" onclick="cm('m-sup')">取消</button><button class="btn bp" onclick="saveSup()">保存</button></div>`;
+  if(s){document.getElementById('su-ind').value=s.industry;document.getElementById('su-tier').value=s.tier}
+  om('m-sup');
 }
-async function delPackage(id){if(!confirm('确定删除？'))return;await api.del('/api/packages/'+id);await loadAll();loadPackages()}
+function editSup(id){const s=D.suppliers.find(x=>x.id===id);if(s)openSupModal(s)}
+async function saveSup(){
+  const id=document.getElementById('su-id').value;
+  const d={code:document.getElementById('su-code').value.trim(),name:document.getElementById('su-name').value.trim(),
+    industry:document.getElementById('su-ind').value,tier:document.getElementById('su-tier').value,
+    contact:document.getElementById('su-ct').value.trim(),phone:document.getElementById('su-ph').value.trim(),
+    email:document.getElementById('su-em').value.trim(),address:document.getElementById('su-addr').value.trim(),
+    status:document.getElementById('su-st').value};
+  if(!d.name){alert('请填写名称');return}
+  if(id){const old=D.suppliers.find(x=>x.id===id);Object.assign(d,{greenRating:old?.greenRating||'',latestScore:old?.latestScore||0,assessCount:old?.assessCount||0,createdAt:old?.createdAt||''});await A.u('/api/suppliers/'+id,d)}
+  else{Object.assign(d,{greenRating:'',latestScore:0,assessCount:0,createdAt:new Date().toISOString()});await A.p('/api/suppliers',d)}
+  cm('m-sup');pgSup();
+}
+async function delSup(id){if(!confirm('确定删除？'))return;await A.d('/api/suppliers/'+id);pgSup()}
+async function viewSup(id){
+  const r=await A.g('/api/suppliers/'+id+'/detail');const s=r.supplier;const recs=r.records;
+  const rc=s.greenRating?({优秀:'bg-g',良好:'bg-b',一般:'bg-a',待改进:'bg-r',通过:'bg-g',卓越:'bg-g',合格:'bg-a',不合格:'bg-r',不通过:'bg-r'}[s.greenRating]||'bg-y'):'bg-y';
+  document.getElementById('md-b').innerHTML=`
+    <div style="display:flex;gap:1rem;align-items:center;margin-bottom:1rem"><div style="width:48px;height:48px;border-radius:12px;background:var(--c1bg);color:var(--c1);display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700">${s.name[0]}</div>
+    <div><div style="font-size:1.05rem;font-weight:600">${s.name}</div><div style="font-size:.8rem;color:var(--tx2)">${s.code} · ${s.industry} · ${s.tier}</div></div>
+    <div style="margin-left:auto;text-align:center"><span class="badge ${rc}" style="font-size:.85rem;padding:.3rem .7rem">${s.greenRating||'未评级'}</span><div style="font-size:.75rem;color:var(--tx2);margin-top:.2rem">最新 ${s.latestScore||'-'} 分</div></div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin-bottom:1rem">
+      <div class="stat"><b>${s.assessCount||0}</b><small>评估次数</small></div>
+      <div class="stat"><b>${s.latestScore||'-'}</b><small>最新得分</small></div>
+      <div class="stat"><b>${s.status==='active'?'活跃':'停用'}</b><small>状态</small></div>
+    </div>
+    <div style="font-size:.82rem;color:var(--tx2);margin-bottom:.75rem">联系人：${s.contact} · ${s.phone} · ${s.email}<br>地址：${s.address}</div>
+    <div style="font-weight:600;margin-bottom:.5rem">评估记录 (${recs.length})</div>
+    ${recs.length?recs.slice().reverse().map(r=>`<div class="rc"><div class="rc-s" style="color:${r.gradeColor}">${r.totalScore}</div>
+      <div class="rc-i"><div class="rc-n">${r.scenarioName}</div><div class="rc-m">${r.ruleName} · ${new Date(r.createdAt).toLocaleDateString('zh-CN')}</div></div>
+      <span class="badge" style="background:${r.gradeColor}22;color:${r.gradeColor}">${r.grade}</span></div>`).join(''):'<div class="empty"><p>暂无评估记录</p></div>'}`;
+  om('m-det');
+}
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// Rules
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-async function loadRules() {
-  await loadAll();
-  const el = document.getElementById('rules-list');
-  if(!D.rules.length){el.innerHTML='<div class="empty"><p>暂无评估规则</p></div>';return}
-  el.innerHTML = D.rules.map(rule=>{
-    const total = rule.scoringScale||100;
-    const gradeBar = rule.grades.map(g=>{
-      const w = (g.max-g.min+1)/total*100;
-      return `<div class="grade-seg" style="width:${w}%;background:${g.color}">${g.name} ${g.min}-${g.max}</div>`;
-    }).join('');
-    return `<div class="card">
-      <div class="card-header">
-        <div><div class="card-title">${rule.name}</div><div style="font-size:.82rem;color:var(--text-2)">${rule.description}</div></div>
-        <div><button class="btn btn-ghost btn-sm" onclick="editRule('${rule.id}')">编辑</button>
-        <button class="btn btn-danger btn-sm" onclick="delRule('${rule.id}')">删除</button></div>
-      </div>
-      <div style="display:flex;gap:1.5rem;font-size:.82rem;color:var(--text-2);margin-bottom:.5rem">
-        <span>权重模式：<strong>${rule.weightMode==='weighted'?'加权':'等权'}</strong></span>
-        <span>满分：<strong>${rule.scoringScale}</strong></span>
-        <span>及格线：<strong>${rule.passScore}</strong></span>
-      </div>
-      <div class="grade-bar">${gradeBar}</div>
-    </div>`;
-  }).join('');
+// ━━ Scenarios ━━
+async function pgSc(){
+  await LA();const pkgM=Object.fromEntries(D.packages.map(p=>[p.id,p]));const rlM=Object.fromEntries(D.rules.map(r=>[r.id,r]));
+  document.getElementById('p-scenarios').innerHTML=`<div class="fb" style="margin-bottom:.75rem"><div class="st" style="margin:0">情景模式</div><button class="btn bp" onclick="openScModal()">+ 新建情景</button></div>
+    <p style="color:var(--tx2);font-size:.82rem;margin-bottom:.85rem">预配置的评估场景，组合指标包与打分规则，可一键生成评估方案。</p>
+    <div class="scg">${D.scenarios.map(sc=>{const rl=rlM[sc.ruleId];const pk=sc.packageIds.map(pid=>pkgM[pid]).filter(Boolean);const ic=new Set(pk.flatMap(p=>p.indicatorIds)).size;
+      return `<div class="scc" onclick="EX.sid='${sc.id}';nav('execute')"><div class="sct" style="background:${pk[0]?.color||'var(--c1)'}"></div><h3>${sc.name}</h3><p>${sc.description}</p>
+      <div class="scc-m"><span class="badge bg-g">${sc.industry}</span><span class="badge bg-b">${sc.applicableScope}</span><span class="badge bg-p">${ic} 项指标</span><span class="badge bg-y">${rl?rl.name:'-'}</span></div>
+      <div style="margin-top:.6rem;font-size:.75rem;color:var(--tx2)">指标包：${pk.map(p=>`<span class="badge bg-t">${p.name}</span> `).join('')}</div>
+      <div style="display:flex;justify-content:flex-end;gap:.3rem;margin-top:.6rem">
+        <button class="btn bg bs" onclick="event.stopPropagation();editSc('${sc.id}')">编辑</button>
+        <button class="btn bd bs" onclick="event.stopPropagation();delSc('${sc.id}')">删除</button></div></div>`}).join('')}</div>`;
 }
-function openRuleModal(rule) {
-  document.getElementById('mr-title').textContent=rule?'编辑规则':'新建规则';
-  const gs = rule?rule.grades:[{name:'优秀',min:90,max:100,color:'#16a34a'},{name:'良好',min:75,max:89,color:'#2563eb'},{name:'一般',min:60,max:74,color:'#d97706'},{name:'待改进',min:0,max:59,color:'#dc2626'}];
-  document.getElementById('mr-body').innerHTML = `
-    <input type="hidden" id="rule-edit-id" value="${rule?rule.id:''}">
-    <div class="form-row"><div class="form-group"><label>规则名称 *</label><input id="rule-name" value="${rule?rule.name:''}"></div>
-    <div class="form-group"><label>权重模式</label><select id="rule-wm"><option value="equal" ${!rule||rule.weightMode==='equal'?'selected':''}>等权</option><option value="weighted" ${rule&&rule.weightMode==='weighted'?'selected':''}>加权</option></select></div></div>
-    <div class="form-group"><label>描述</label><textarea id="rule-desc">${rule?rule.description:''}</textarea></div>
-    <div class="form-row"><div class="form-group"><label>满分</label><input type="number" id="rule-scale" value="${rule?rule.scoringScale:100}"></div>
-    <div class="form-group"><label>及格线</label><input type="number" id="rule-pass" value="${rule?rule.passScore:60}"></div></div>
-    <div class="form-group"><label>等级设定</label><div id="rule-grades"></div><button class="btn btn-ghost btn-sm mt-1" onclick="addGradeRow()">+ 添加等级</button></div>
-    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('modal-rule')">取消</button><button class="btn btn-primary" onclick="saveRule()">保存</button></div>`;
-  const cont = document.getElementById('rule-grades');
-  gs.forEach(g=>addGradeRow(g));
-  document.getElementById('modal-rule').classList.add('show');
+function openScModal(sc){
+  document.getElementById('ms-t').textContent=sc?'编辑情景':'新建情景';
+  document.getElementById('ms-b').innerHTML=`<input type="hidden" id="sc-id" value="${sc?sc.id:''}">
+    <div class="fr"><div class="fg"><label>情景名称 *</label><input id="sc-nm" value="${sc?sc.name:''}"></div><div class="fg"><label>适用行业</label><input id="sc-in" value="${sc?sc.industry:'通用'}"></div></div>
+    <div class="fg"><label>描述</label><textarea id="sc-ds">${sc?sc.description:''}</textarea></div>
+    <div class="fg"><label>适用范围</label><input id="sc-sp" value="${sc?sc.applicableScope:''}"></div>
+    <div class="fg"><label>打分规则</label><select id="sc-rl">${D.rules.map(r=>`<option value="${r.id}" ${sc&&sc.ruleId===r.id?'selected':''}>${r.name}</option>`).join('')}</select></div>
+    <div class="fg"><label>选择指标包</label>${D.packages.map(p=>`<label class="ic ${sc&&sc.packageIds.includes(p.id)?'sel':''}" onclick="this.classList.toggle('sel');this.querySelector('input').checked=!this.querySelector('input').checked"><input type="checkbox" value="${p.id}" ${sc&&sc.packageIds.includes(p.id)?'checked':''}><div class="ic-b"><div class="ic-n">${p.name}</div><div class="ic-d">${p.description}</div></div></label>`).join('')}</div>
+    <div class="mf"><button class="btn bg" onclick="cm('m-sc')">取消</button><button class="btn bp" onclick="saveSc()">保存</button></div>`;
+  om('m-sc');
 }
-function addGradeRow(g) {
-  const cont = document.getElementById('rule-grades');
-  const div = document.createElement('div');
-  div.className='form-row';div.style.marginBottom='.4rem';div.style.gridTemplateColumns='2fr 1fr 1fr auto';
-  div.innerHTML = `<input class="gr-name" placeholder="等级名称" value="${g?g.name:''}" style="padding:.4rem .5rem;border:1px solid var(--border);border-radius:5px;font-size:.82rem">
-    <input type="number" class="gr-min" placeholder="最低" value="${g?g.min:''}" style="padding:.4rem .5rem;border:1px solid var(--border);border-radius:5px;font-size:.82rem">
-    <input type="number" class="gr-max" placeholder="最高" value="${g?g.max:''}" style="padding:.4rem .5rem;border:1px solid var(--border);border-radius:5px;font-size:.82rem">
-    <input type="color" class="gr-color" value="${g?g.color:'#16a34a'}" style="width:32px;height:32px;border:none;padding:0;cursor:pointer">`;
-  cont.appendChild(div);
+function editSc(id){const sc=D.scenarios.find(s=>s.id===id);if(sc)openScModal(sc)}
+async function saveSc(){const id=document.getElementById('sc-id').value;const d={name:document.getElementById('sc-nm').value.trim(),description:document.getElementById('sc-ds').value.trim(),industry:document.getElementById('sc-in').value.trim(),applicableScope:document.getElementById('sc-sp').value.trim(),ruleId:document.getElementById('sc-rl').value,packageIds:[...document.querySelectorAll('#ms-b input[type=checkbox]:checked')].map(c=>c.value)};if(!d.name){alert('请填写名称');return}if(id)await A.u('/api/scenarios/'+id,d);else await A.p('/api/scenarios',d);cm('m-sc');pgSc()}
+async function delSc(id){if(!confirm('确定？'))return;await A.d('/api/scenarios/'+id);pgSc()}
+
+// ━━ Indicators ━━
+async function pgInd(){
+  await LA();const cats=['全部',...new Set(D.indicators.map(i=>i.category))];
+  document.getElementById('p-indicators').innerHTML=`<div class="fb" style="margin-bottom:.75rem"><div class="st" style="margin:0">评估指标管理</div><button class="btn bp" onclick="openIndModal()">+ 新增指标</button></div>
+    <div class="ct-tabs">${cats.map(c=>`<button class="ct-tab ${c===indF?'on':''}" onclick="indF='${c}';rIndTb()">${c}</button>`).join('')}</div>
+    <div class="card" style="padding:0"><div class="tw"><table><thead><tr><th>编号</th><th>名称</th><th>类别</th><th>描述</th><th>单位</th><th>类型</th><th>操作</th></tr></thead><tbody id="ind-tb"></tbody></table></div></div>`;
+  rIndTb();
 }
+function rIndTb(){const ls=indF==='全部'?D.indicators:D.indicators.filter(i=>i.category===indF);
+  document.getElementById('ind-tb').innerHTML=ls.length?ls.map(i=>`<tr><td style="font-family:monospace;font-size:.78rem">${i.id}</td><td style="font-weight:500">${i.name}</td><td><span class="badge bg-g">${i.category}</span></td><td style="max-width:200px;font-size:.78rem;color:var(--tx2)">${i.description}</td><td>${i.unit}</td><td><span class="badge ${i.dataType==='quantitative'?'bg-b':'bg-a'}">${i.dataType==='quantitative'?'定量':'定性'}</span></td><td><button class="btn bg bs" onclick='openIndModal(${JSON.stringify(i).replace(/\x27/g,"&#39;")})'>编辑</button> <button class="btn bd bs" onclick="delInd('${i.id}')">删除</button></td></tr>`).join(''):'<tr><td colspan="7" class="tc" style="padding:2rem;color:var(--tx3)">暂无</td></tr>'}
+function openIndModal(i){
+  document.getElementById('mi-t').textContent=i?'编辑指标':'新增指标';
+  const cats=[...new Set(D.indicators.map(x=>x.category))];
+  document.getElementById('mi-b').innerHTML=`<input type="hidden" id="id-id" value="${i?i.id:''}">
+    <div class="fr"><div class="fg"><label>名称 *</label><input id="id-nm" value="${i?i.name:''}"></div><div class="fg"><label>类别 *</label><input id="id-ct" value="${i?i.category:''}" list="cl"><datalist id="cl">${cats.map(c=>`<option>${c}</option>`).join('')}</datalist></div></div>
+    <div class="fg"><label>描述</label><textarea id="id-ds">${i?i.description:''}</textarea></div>
+    <div class="fr"><div class="fg"><label>单位</label><input id="id-un" value="${i?i.unit:'%'}"></div><div class="fg"><label>数据类型</label><select id="id-dt"><option value="quantitative" ${!i||i.dataType==='quantitative'?'selected':''}>定量</option><option value="qualitative" ${i&&i.dataType==='qualitative'?'selected':''}>定性</option></select></div></div>
+    <div class="mf"><button class="btn bg" onclick="cm('m-ind')">取消</button><button class="btn bp" onclick="saveInd()">保存</button></div>`;
+  om('m-ind');
+}
+async function saveInd(){const id=document.getElementById('id-id').value;const d={name:document.getElementById('id-nm').value.trim(),category:document.getElementById('id-ct').value.trim(),description:document.getElementById('id-ds').value.trim(),unit:document.getElementById('id-un').value.trim(),dataType:document.getElementById('id-dt').value};if(!d.name||!d.category){alert('请填写名称和类别');return}if(id)await A.u('/api/indicators/'+id,d);else await A.p('/api/indicators',d);cm('m-ind');await LA();pgInd()}
+async function delInd(id){if(!confirm('确定？'))return;await A.d('/api/indicators/'+id);await LA();pgInd()}
+
+// ━━ Packages ━━
+async function pgPkg(){
+  await LA();const iM=Object.fromEntries(D.indicators.map(i=>[i.id,i]));
+  document.getElementById('p-packages').innerHTML=`<div class="fb" style="margin-bottom:.75rem"><div class="st" style="margin:0">指标包管理</div><button class="btn bp" onclick="openPkgModal()">+ 新建指标包</button></div>
+    <p style="color:var(--tx2);font-size:.82rem;margin-bottom:.85rem">将相关指标打包，便于在情景模式和评估方案中快速引用。</p>
+    <div class="pkg-g">${D.packages.map(pk=>{const inds=pk.indicatorIds.map(id=>iM[id]).filter(Boolean);const cats=[...new Set(inds.map(i=>i.category))];
+      return `<div class="pkg-c"><div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.4rem"><div style="width:9px;height:9px;border-radius:50%;background:${pk.color||'var(--c1)'}"></div><h4>${pk.name}</h4></div>
+      <p>${pk.description}</p><div style="margin-bottom:.5rem">${cats.map(c=>`<span class="badge bg-g" style="margin-right:.2rem">${c}</span>`).join('')}</div>
+      <div style="font-size:.76rem;color:var(--tx2);margin-bottom:.4rem">包含 <strong>${inds.length}</strong> 项：${inds.slice(0,4).map(i=>i.name).join('、')}${inds.length>4?'...':''}</div>
+      <div class="fb"><span class="badge bg-b">${inds.length} 项</span><div><button class="btn bg bs" onclick="editPkg('${pk.id}')">编辑</button> <button class="btn bd bs" onclick="delPkg('${pk.id}')">删除</button></div></div></div>`}).join('')}</div>`;
+}
+function openPkgModal(pk){
+  document.getElementById('mp-t').textContent=pk?'编辑指标包':'新建指标包';
+  const cats=[...new Set(D.indicators.map(i=>i.category))];let ih='';
+  cats.forEach(cat=>{ih+=`<div style="font-weight:600;font-size:.8rem;margin:.5rem 0 .2rem;color:var(--c1)">${cat}</div>`;
+    D.indicators.filter(i=>i.category===cat).forEach(i=>{const ck=pk&&pk.indicatorIds.includes(i.id);
+      ih+=`<label class="ic ${ck?'sel':''}" style="padding:.35rem .45rem" onclick="this.classList.toggle('sel');this.querySelector('input').checked=!this.querySelector('input').checked"><input type="checkbox" value="${i.id}" ${ck?'checked':''}><div class="ic-b"><div class="ic-n" style="font-size:.8rem">${i.name}</div></div></label>`})});
+  document.getElementById('mp-b').innerHTML=`<input type="hidden" id="pk-id" value="${pk?pk.id:''}">
+    <div class="fg"><label>名称 *</label><input id="pk-nm" value="${pk?pk.name:''}"></div>
+    <div class="fg"><label>描述</label><textarea id="pk-ds">${pk?pk.description:''}</textarea></div>
+    <div class="fg"><label>颜色</label><input id="pk-cl" type="color" value="${pk?pk.color:'#059669'}" style="height:34px;padding:2px"></div>
+    <div class="fg"><label>选择指标</label><div style="max-height:280px;overflow-y:auto;border:1px solid var(--bd);border-radius:7px;padding:.4rem">${ih}</div></div>
+    <div class="mf"><button class="btn bg" onclick="cm('m-pkg')">取消</button><button class="btn bp" onclick="savePkg()">保存</button></div>`;
+  om('m-pkg');
+}
+function editPkg(id){const pk=D.packages.find(p=>p.id===id);if(pk)openPkgModal(pk)}
+async function savePkg(){const id=document.getElementById('pk-id').value;const d={name:document.getElementById('pk-nm').value.trim(),description:document.getElementById('pk-ds').value.trim(),color:document.getElementById('pk-cl').value,indicatorIds:[...document.querySelectorAll('#mp-b input[type=checkbox]:checked')].map(c=>c.value)};if(!d.name){alert('请填写名称');return}if(id)await A.u('/api/packages/'+id,d);else await A.p('/api/packages',d);cm('m-pkg');await LA();pgPkg()}
+async function delPkg(id){if(!confirm('确定？'))return;await A.d('/api/packages/'+id);await LA();pgPkg()}
+
+// ━━ Rules ━━
+async function pgRule(){
+  await LA();
+  document.getElementById('p-rules').innerHTML=`<div class="fb" style="margin-bottom:.75rem"><div class="st" style="margin:0">打分规则管理</div><button class="btn bp" onclick="openRuleModal()">+ 新建规则</button></div>
+    <p style="color:var(--tx2);font-size:.82rem;margin-bottom:.85rem">定义评分等级、及格线、权重模式等评估判定规则。</p>
+    ${D.rules.map(r=>{const tot=r.scoringScale||100;return `<div class="card"><div class="card-h"><div><div class="card-t">${r.name}</div><div style="font-size:.8rem;color:var(--tx2)">${r.description}</div></div>
+      <div><button class="btn bg bs" onclick="editRule('${r.id}')">编辑</button> <button class="btn bd bs" onclick="delRule('${r.id}')">删除</button></div></div>
+      <div style="display:flex;gap:1.2rem;font-size:.8rem;color:var(--tx2);margin-bottom:.4rem"><span>权重：<strong>${r.weightMode==='weighted'?'加权':'等权'}</strong></span><span>满分：<strong>${r.scoringScale}</strong></span><span>及格线：<strong>${r.passScore}</strong></span></div>
+      <div class="gb">${r.grades.map(g=>`<div class="gs" style="width:${(g.max-g.min+1)/tot*100}%;background:${g.color}">${g.name} ${g.min}-${g.max}</div>`).join('')}</div></div>`}).join('')}`;
+}
+function openRuleModal(r){
+  document.getElementById('mr-t').textContent=r?'编辑规则':'新建规则';
+  const gs=r?r.grades:[{name:'优秀',min:90,max:100,color:'#16a34a'},{name:'良好',min:75,max:89,color:'#2563eb'},{name:'一般',min:60,max:74,color:'#d97706'},{name:'待改进',min:0,max:59,color:'#dc2626'}];
+  document.getElementById('mr-b').innerHTML=`<input type="hidden" id="rl-id" value="${r?r.id:''}">
+    <div class="fr"><div class="fg"><label>名称 *</label><input id="rl-nm" value="${r?r.name:''}"></div><div class="fg"><label>权重模式</label><select id="rl-wm"><option value="equal" ${!r||r.weightMode==='equal'?'selected':''}>等权</option><option value="weighted" ${r&&r.weightMode==='weighted'?'selected':''}>加权</option></select></div></div>
+    <div class="fg"><label>描述</label><textarea id="rl-ds">${r?r.description:''}</textarea></div>
+    <div class="fr"><div class="fg"><label>满分</label><input type="number" id="rl-sc" value="${r?r.scoringScale:100}"></div><div class="fg"><label>及格线</label><input type="number" id="rl-ps" value="${r?r.passScore:60}"></div></div>
+    <div class="fg"><label>等级设定</label><div id="rl-gs"></div><button class="btn bg bs" style="margin-top:.4rem" onclick="addGR()">+ 添加等级</button></div>
+    <div class="mf"><button class="btn bg" onclick="cm('m-rule')">取消</button><button class="btn bp" onclick="saveRule()">保存</button></div>`;
+  gs.forEach(g=>addGR(g));om('m-rule');
+}
+function addGR(g){const c=document.getElementById('rl-gs');const d=document.createElement('div');d.className='fr';d.style.marginBottom='.35rem';d.style.gridTemplateColumns='2fr 1fr 1fr auto';
+  d.innerHTML=`<input class="gn" placeholder="等级" value="${g?g.name:''}" style="padding:.35rem .45rem;border:1px solid var(--bd);border-radius:5px;font-size:.8rem"><input type="number" class="gmi" placeholder="最低" value="${g?g.min:''}" style="padding:.35rem .45rem;border:1px solid var(--bd);border-radius:5px;font-size:.8rem"><input type="number" class="gma" placeholder="最高" value="${g?g.max:''}" style="padding:.35rem .45rem;border:1px solid var(--bd);border-radius:5px;font-size:.8rem"><input type="color" class="gc" value="${g?g.color:'#16a34a'}" style="width:30px;height:30px;border:none;padding:0;cursor:pointer">`;c.appendChild(d)}
 function editRule(id){const r=D.rules.find(x=>x.id===id);if(r)openRuleModal(r)}
-async function saveRule(){
-  const id=document.getElementById('rule-edit-id').value;
-  const rows = document.querySelectorAll('#rule-grades .form-row');
-  const grades=[];rows.forEach(r=>{
-    const n=r.querySelector('.gr-name').value.trim();if(!n)return;
-    grades.push({name:n,min:parseInt(r.querySelector('.gr-min').value)||0,max:parseInt(r.querySelector('.gr-max').value)||100,color:r.querySelector('.gr-color').value});
-  });
-  const data={name:document.getElementById('rule-name').value.trim(),description:document.getElementById('rule-desc').value.trim(),
-    weightMode:document.getElementById('rule-wm').value,scoringScale:parseInt(document.getElementById('rule-scale').value)||100,
-    passScore:parseInt(document.getElementById('rule-pass').value)||60,grades};
-  if(!data.name){alert('请填写名称');return}
-  if(id) await api.put('/api/rules/'+id,data); else await api.post('/api/rules',data);
-  closeModal('modal-rule');await loadAll();loadRules();
-}
-async function delRule(id){if(!confirm('确定删除？'))return;await api.del('/api/rules/'+id);await loadAll();loadRules()}
+async function saveRule(){const id=document.getElementById('rl-id').value;const grades=[];document.querySelectorAll('#rl-gs .fr').forEach(r=>{const n=r.querySelector('.gn').value.trim();if(!n)return;grades.push({name:n,min:parseInt(r.querySelector('.gmi').value)||0,max:parseInt(r.querySelector('.gma').value)||100,color:r.querySelector('.gc').value})});
+  const d={name:document.getElementById('rl-nm').value.trim(),description:document.getElementById('rl-ds').value.trim(),weightMode:document.getElementById('rl-wm').value,scoringScale:parseInt(document.getElementById('rl-sc').value)||100,passScore:parseInt(document.getElementById('rl-ps').value)||60,grades};if(!d.name){alert('请填写名称');return}if(id)await A.u('/api/rules/'+id,d);else await A.p('/api/rules',d);cm('m-rule');await LA();pgRule()}
+async function delRule(id){if(!confirm('确定？'))return;await A.d('/api/rules/'+id);await LA();pgRule()}
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// Plans
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-async function loadPlans() {
-  await loadAll();
-  const el = document.getElementById('plans-list');
-  if(!D.plans.length){el.innerHTML='<div class="empty"><p>暂无评估方案</p><button class="btn btn-primary mt-1" onclick="showPage(\'execute\')">创建方案</button></div>';return}
-  el.innerHTML = D.plans.slice().reverse().map(p=>{
-    const isPending = p.status==='待评估';
-    return `<div class="record-card">
-      <div class="rc-info">
-        <div class="rc-name">${p.name||p.targetCompany}</div>
-        <div class="rc-meta">${p.scenarioName} · ${p.targetCompany} · ${p.industry||''} · ${new Date(p.createdAt).toLocaleDateString('zh-CN')}</div>
-        <div class="rc-meta">指标 ${p.indicatorIds.length} 项</div>
-      </div>
-      <span class="badge ${isPending?'badge-amber':'badge-green'}">${p.status}</span>
-      <div class="rc-actions">
-        ${isPending?`<button class="btn btn-primary btn-sm" onclick="execPlan('${p.id}')">去评分</button>`:''}
-        <button class="btn btn-danger btn-sm" onclick="delPlan('${p.id}')">删除</button>
-      </div>
-    </div>`;
-  }).join('');
+// ━━ Plans ━━
+async function pgPlan(){
+  await LA();const el=document.getElementById('p-plans');
+  if(!D.plans.length){el.innerHTML='<div class="fb" style="margin-bottom:.75rem"><div class="st" style="margin:0">评估方案</div><button class="btn bp" onclick="nav(\'execute\')">+ 创建方案</button></div><div class="empty"><p>暂无方案</p></div>';return}
+  el.innerHTML=`<div class="fb" style="margin-bottom:.75rem"><div class="st" style="margin:0">评估方案</div><button class="btn bp" onclick="nav('execute')">+ 创建方案</button></div>`+
+    D.plans.slice().reverse().map(p=>{const ip=p.status==='待评估';return `<div class="rc"><div class="rc-i"><div class="rc-n">${p.name||p.supplierName}</div><div class="rc-m">${p.scenarioName} · ${p.supplierName} · ${p.industry||''} · ${new Date(p.createdAt).toLocaleDateString('zh-CN')} · ${p.indicatorIds.length} 项指标</div></div>
+      <span class="badge ${ip?'bg-a':'bg-g'}">${p.status}</span>
+      <div class="rc-a">${ip?`<button class="btn bp bs" onclick="execPlan('${p.id}')">去评分</button>`:''}<button class="btn bd bs" onclick="delPlan('${p.id}')">删除</button></div></div>`}).join('');
 }
-async function delPlan(id){if(!confirm('确定删除？'))return;await api.del('/api/plans/'+id);await loadAll();loadPlans()}
+async function delPlan(id){if(!confirm('确定？'))return;await A.d('/api/plans/'+id);await LA();pgPlan()}
+function execPlan(pid){const p=D.plans.find(x=>x.id===pid);if(!p)return;EX={step:3,sid:p.scenarioId,plan:p,pkgs:p.packageIds,inds:p.indicatorIds,scores:{},weights:p.weights||{}};p.indicatorIds.forEach(id=>{EX.scores[id]=75});nav('execute')}
 
-function execPlan(planId) {
-  const plan = D.plans.find(p=>p.id===planId);
-  if(!plan)return;
-  execState = {step:3,scenarioId:plan.scenarioId,planData:plan,selectedPkgs:plan.packageIds,
-    allInds:plan.indicatorIds,scores:{},weights:plan.weights||{}};
-  plan.indicatorIds.forEach(id=>{execState.scores[id]=75});
-  showPage('execute');
+// ━━ Execute ━━
+let scF='全部';
+async function pgExec(){await LA();if(EX.step===3&&EX.plan.id){rExec();return}EX={step:1,sid:EX.sid||'',plan:{},pkgs:[],inds:[],scores:{},weights:{}};rExec()}
+function rExec(){
+  const s=EX.step;const steps=['选择情景','配置方案','指标评分','评估结果'];
+  const el=document.getElementById('p-execute');
+  let html=`<div class="wf">${steps.map((t,i)=>{const cl=(i+1)<s?'wdn':(i+1)===s?'wact':'';return `<div class="ws ${cl}"><span class="wn">${(i+1)<s?'&#10003;':i+1}</span>${t}</div>${i<steps.length-1?`<div class="wl ${(i+1)<s?'wdn':''}"></div>`:''}`}).join('')}</div>`;
+  if(s===1) html+=rEx1();
+  if(s===2) html+=rEx2();
+  if(s===3) html+=rEx3();
+  if(s===4) html+=`<div id="ex-r4"></div>`;
+  el.innerHTML=html;
+  if(s===2) updExPrev();
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// Execute (4-step wizard)
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-async function initExec() {
-  await loadAll();
-  if(execState.step===3 && execState.planData.id) { renderExecStep(); return; }
-  execState = {step:1,scenarioId:execState.scenarioId||'',planData:{},selectedPkgs:[],allInds:[],scores:{},weights:{}};
-  renderExecStep();
+function rEx1(){
+  const pkgM=Object.fromEntries(D.packages.map(p=>[p.id,p]));
+  return `<div class="card"><div class="card-t">选择情景模式</div>
+    <p style="color:var(--tx2);font-size:.82rem;margin-bottom:.85rem">选择一个预配置的评估情景，系统将自动加载对应的指标包和打分规则。</p>
+    <div class="scg">${D.scenarios.map(sc=>{const pk=sc.packageIds.map(pid=>pkgM[pid]).filter(Boolean);const cnt=new Set(pk.flatMap(p=>p.indicatorIds)).size;const sel=EX.sid===sc.id;
+      return `<div class="scc" style="${sel?'border-color:var(--c1);background:var(--c1bg)':''}" onclick="EX.sid='${sc.id}';rExec()"><div class="sct" style="background:${pk[0]?.color||'var(--c1)'}"></div><h3>${sc.name}</h3><p>${sc.description}</p>
+      <div class="scc-m"><span class="badge bg-g">${sc.industry}</span><span class="badge bg-p">${cnt} 项指标</span></div></div>`}).join('')}</div>
+    <div style="text-align:right;margin-top:.85rem"><button class="btn bp bl" onclick="goEx(2)">下一步：配置方案 →</button></div></div>`;
 }
 
-function renderExecStep() {
-  const s = execState.step;
-  const steps = ['选择情景','配置方案','指标评分','评估结果'];
-  document.getElementById('exec-wf').innerHTML = steps.map((t,i)=>{
-    const cls = (i+1)<s?'done':(i+1)===s?'active':'';
-    return `<div class="wf-step ${cls}"><span class="wf-num">${(i+1)<s?'&#10003;':i+1}</span>${t}</div>${i<steps.length-1?`<div class="wf-line ${(i+1)<s?'done':''}"></div>`:''}`;
-  }).join('');
-  [1,2,3,4].forEach(i=>{document.getElementById('exec-step-'+i).style.display=i===s?'':'none'});
-  if(s===1) renderExecStep1();
-  if(s===2) renderExecStep2();
-  if(s===3) renderExecStep3();
+function rEx2(){
+  const sc=D.scenarios.find(s=>s.id===EX.sid);
+  if(!EX.pkgs.length&&sc)EX.pkgs=[...sc.packageIds];
+  const iM=Object.fromEntries(D.indicators.map(i=>[i.id,i]));
+  return `<div class="card"><div class="card-t">配置评估方案</div>
+    <div class="fr"><div class="fg"><label>方案名称 *</label><input id="ex-nm" value="${sc?sc.name+' - '+new Date().toLocaleDateString('zh-CN'):''}"></div>
+    <div class="fg"><label>选择供应商 *</label><select id="ex-sup"><option value="">-- 请选择供应商 --</option>${D.suppliers.filter(s=>s.status==='active').map(s=>`<option value="${s.id}">${s.name} (${s.code})</option>`).join('')}</select></div></div>
+    <div class="fr"><div class="fg"><label>所属行业</label><input id="ex-ind" value="${sc?sc.industry:''}"></div>
+    <div class="fg"><label>打分规则</label><select id="ex-rl">${D.rules.map(r=>`<option value="${r.id}" ${sc&&sc.ruleId===r.id?'selected':''}>${r.name}</option>`).join('')}</select></div></div>
+    <div class="fg"><label>选择指标包</label><div class="pkg-g">${D.packages.map(pk=>{const sel=EX.pkgs.includes(pk.id);const inds=pk.indicatorIds.map(id=>iM[id]).filter(Boolean);
+      return `<div class="pkg-c ${sel?'sel':''}" onclick="tgExPkg('${pk.id}')" style="cursor:pointer"><div style="display:flex;align-items:center;gap:.35rem;margin-bottom:.25rem"><div style="width:8px;height:8px;border-radius:50%;background:${pk.color}"></div><h4>${pk.name}</h4></div><p>${pk.description}</p><span class="badge bg-b">${inds.length} 项</span></div>`}).join('')}</div></div>
+    <div style="background:var(--bg);border-radius:7px;padding:.65rem;margin-bottom:.85rem"><div style="font-weight:600;font-size:.82rem;margin-bottom:.3rem" id="ex-ic"></div><div id="ex-ip" style="font-size:.78rem;color:var(--tx2)"></div></div>
+    <div class="fb"><button class="btn bg" onclick="goEx(1)">← 上一步</button><div><button class="btn bo" onclick="savePlanOnly()" style="margin-right:.4rem">仅保存方案</button><button class="btn bp bl" onclick="goEx(3)">下一步：开始评分 →</button></div></div></div>`;
 }
-
-function renderExecStep1() {
-  const el = document.getElementById('exec-step-1');
-  el.innerHTML = `<div class="card"><div class="card-title">选择情景模式</div>
-    <p style="color:var(--text-2);font-size:.85rem;margin-bottom:1rem">选择一个预配置的评估情景，系统将自动加载对应的指标包和评估规则。</p>
-    <div class="scenario-grid">${D.scenarios.map(sc=>{
-      const pkgMap=Object.fromEntries(D.packages.map(p=>[p.id,p]));
-      const pkgs=sc.packageIds.map(pid=>pkgMap[pid]).filter(Boolean);
-      const cnt=new Set(pkgs.flatMap(p=>p.indicatorIds)).size;
-      const sel=execState.scenarioId===sc.id;
-      return `<div class="scenario-card ${sel?'selected':''}" style="${sel?'border-color:var(--primary);background:var(--primary-bg)':''}" onclick="execState.scenarioId='${sc.id}';renderExecStep1()">
-        <div class="sc-top" style="background:${pkgs[0]?.color||'var(--primary)'}"></div>
-        <h3>${sc.name}</h3><p>${sc.description}</p>
-        <div class="scenario-card-meta"><span class="badge badge-green">${sc.industry}</span><span class="badge badge-purple">${cnt} 项指标</span></div>
-      </div>`;}).join('')}</div>
-    <div style="text-align:right;margin-top:1rem"><button class="btn btn-primary btn-lg" onclick="goExec(2)">下一步：配置方案 →</button></div></div>`;
+function tgExPkg(pid){const i=EX.pkgs.indexOf(pid);if(i>=0)EX.pkgs.splice(i,1);else EX.pkgs.push(pid);rExec()}
+function updExPrev(){
+  const pkgM=Object.fromEntries(D.packages.map(p=>[p.id,p]));const iM=Object.fromEntries(D.indicators.map(i=>[i.id,i]));
+  const ids=[...new Set(EX.pkgs.flatMap(pid=>(pkgM[pid]||{indicatorIds:[]}).indicatorIds))];EX.inds=ids;
+  ids.forEach(id=>{if(!(id in EX.scores))EX.scores[id]=75;if(!(id in EX.weights))EX.weights[id]=1});
+  document.getElementById('ex-ic').textContent=`将评估 ${ids.length} 项指标`;
+  const cats={};ids.forEach(id=>{const ind=iM[id];if(ind){(cats[ind.category]=cats[ind.category]||[]).push(ind.name)}});
+  document.getElementById('ex-ip').innerHTML=Object.entries(cats).map(([c,ns])=>`<strong>${c}：</strong>${ns.join('、')}`).join('<br>');
 }
-
-function renderExecStep2() {
-  const sc = D.scenarios.find(s=>s.id===execState.scenarioId);
-  const ruleOpts = D.rules.map(r=>`<option value="${r.id}" ${sc&&sc.ruleId===r.id?'selected':''}>${r.name} - ${r.description}</option>`).join('');
-  const pkgMap = Object.fromEntries(D.packages.map(p=>[p.id,p]));
-  const indMap = Object.fromEntries(D.indicators.map(i=>[i.id,i]));
-  if(!execState.selectedPkgs.length && sc) execState.selectedPkgs = [...sc.packageIds];
-
-  const el = document.getElementById('exec-step-2');
-  el.innerHTML = `<div class="card"><div class="card-title">配置评估方案</div>
-    <div class="form-row">
-      <div class="form-group"><label>方案名称 *</label><input id="ex-name" value="${sc?sc.name+' - '+new Date().toLocaleDateString('zh-CN'):''}"></div>
-      <div class="form-group"><label>被评估企业 *</label><input id="ex-target" placeholder="输入被评估企业名称"></div>
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label>所属行业</label><input id="ex-industry" value="${sc?sc.industry:''}"></div>
-      <div class="form-group"><label>联系人</label><input id="ex-contact"></div>
-    </div>
-    <div class="form-group"><label>评估规则</label><select id="ex-rule">${ruleOpts}</select></div>
-    <div class="form-group"><label>选择指标包</label>
-      <div class="pkg-grid">${D.packages.map(pkg=>{
-        const sel = execState.selectedPkgs.includes(pkg.id);
-        const inds = pkg.indicatorIds.map(id=>indMap[id]).filter(Boolean);
-        return `<div class="pkg-card ${sel?'selected':''}" onclick="toggleExecPkg('${pkg.id}')" style="cursor:pointer">
-          <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem"><div style="width:8px;height:8px;border-radius:50%;background:${pkg.color}"></div><h4>${pkg.name}</h4></div>
-          <p>${pkg.description}</p><span class="badge badge-blue">${inds.length} 项指标</span></div>`;
-      }).join('')}</div>
-    </div>
-    <div style="background:var(--bg);border-radius:8px;padding:.75rem;margin-bottom:1rem">
-      <div style="font-weight:600;font-size:.85rem;margin-bottom:.4rem" id="ex-ind-count"></div>
-      <div id="ex-ind-preview" style="font-size:.8rem;color:var(--text-2)"></div>
-    </div>
-    <div class="flex-between"><button class="btn btn-ghost" onclick="goExec(1)">← 上一步</button>
-    <div><button class="btn btn-outline" onclick="savePlanOnly()" style="margin-right:.5rem">仅保存方案</button>
-    <button class="btn btn-primary btn-lg" onclick="goExec(3)">下一步：开始评分 →</button></div></div></div>`;
-  updateExecIndPreview();
+async function savePlanOnly(){const b=gatherPlan();if(!b)return;await A.p('/api/plans',b);await LA();alert('方案已保存');nav('plans')}
+function gatherPlan(){
+  const nm=document.getElementById('ex-nm').value.trim();const sid=document.getElementById('ex-sup').value;
+  if(!sid){alert('请选择供应商');return null}
+  return{name:nm,scenarioId:EX.sid,supplierId:sid,industry:document.getElementById('ex-ind').value.trim(),
+    ruleId:document.getElementById('ex-rl').value,packageIds:EX.pkgs,weights:EX.weights};
 }
-
-function toggleExecPkg(pid) {
-  const idx = execState.selectedPkgs.indexOf(pid);
-  if(idx>=0) execState.selectedPkgs.splice(idx,1); else execState.selectedPkgs.push(pid);
-  renderExecStep2();
+function rEx3(){
+  const iM=Object.fromEntries(D.indicators.map(i=>[i.id,i]));
+  const inds=EX.inds.map(id=>iM[id]).filter(Boolean);
+  const cats=['全部',...new Set(inds.map(i=>i.category))];
+  const flt=scF==='全部'?inds:inds.filter(i=>i.category===scF);
+  const rule=D.rules.find(r=>r.id===(EX.plan.ruleId||document.getElementById('ex-rl')?.value||'R01'));
+  const wm=rule?.weightMode||'equal';
+  return `<div class="card"><div class="card-t">指标评分</div>
+    <p style="color:var(--tx2);font-size:.82rem;margin-bottom:.65rem">${EX.plan.supplierName||''} · 共 ${inds.length} 项指标 · ${rule?rule.name:''}</p>
+    <div class="ct-tabs">${cats.map(c=>`<button class="ct-tab ${c===scF?'on':''}" onclick="scF='${c}';rExec()">${c}</button>`).join('')}</div>
+    ${flt.map(ind=>{const sc=EX.scores[ind.id]??75;EX.scores[ind.id]=sc;const w=EX.weights[ind.id]||1;
+      return `<div class="si"><div class="si-h"><div><div class="si-n">${ind.name}</div><div class="si-d">${ind.description}</div></div>
+      ${wm==='weighted'?`<div style="display:flex;align-items:center;gap:.25rem;font-size:.76rem;color:var(--tx2)">权重 <input type="number" min="1" max="10" value="${w}" style="width:42px;padding:.18rem .25rem;border:1px solid var(--bd);border-radius:4px;font-size:.76rem;text-align:center" onchange="EX.weights['${ind.id}']=parseInt(this.value)||1"></div>`:''}</div>
+      <div class="si-s"><input type="range" min="0" max="100" value="${sc}" oninput="uSc('${ind.id}',this.value)"><div class="si-v ${gradeClass(sc)}" id="sv-${ind.id}">${sc}</div></div>
+      <div style="display:flex;justify-content:space-between;font-size:.66rem;color:var(--tx3);margin-top:.15rem"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div></div>`}).join('')}
+    <div class="fb" style="margin-top:.85rem">
+      ${EX.plan.id?`<button class="btn bg" onclick="nav('plans')">← 返回</button>`:`<button class="btn bg" onclick="goEx(2)">← 上一步</button>`}
+      <button class="btn bp bl" onclick="submitEx()">提交评估</button></div></div>`;
 }
-function updateExecIndPreview() {
-  const pkgMap = Object.fromEntries(D.packages.map(p=>[p.id,p]));
-  const indMap = Object.fromEntries(D.indicators.map(i=>[i.id,i]));
-  const indIds = [...new Set(execState.selectedPkgs.flatMap(pid=>(pkgMap[pid]||{indicatorIds:[]}).indicatorIds))];
-  execState.allInds = indIds;
-  indIds.forEach(id=>{if(!(id in execState.scores))execState.scores[id]=75;if(!(id in execState.weights))execState.weights[id]=1});
-  document.getElementById('ex-ind-count').textContent = `将评估 ${indIds.length} 项指标`;
-  const cats={};indIds.forEach(id=>{const ind=indMap[id];if(ind){if(!cats[ind.category])cats[ind.category]=[];cats[ind.category].push(ind.name)}});
-  document.getElementById('ex-ind-preview').innerHTML = Object.entries(cats).map(([c,ns])=>`<strong>${c}：</strong>${ns.join('、')}`).join('<br>');
+function uSc(id,v){v=parseInt(v);EX.scores[id]=v;const el=document.getElementById('sv-'+id);el.textContent=v;el.className='si-v '+gradeClass(v)}
+async function submitEx(){
+  let pid=EX.plan.id;
+  if(!pid){const b=gatherPlan();if(!b)return;const p=await A.p('/api/plans',b);pid=p.id;EX.plan=p}
+  const rec=await A.p('/api/records',{planId:pid,scores:EX.scores});
+  await LA();EX.step=4;rExec();showResult(rec);
 }
-
-async function savePlanOnly() {
-  const body = gatherPlanData();
-  if(!body)return;
-  await api.post('/api/plans',body);
-  await loadAll();
-  alert('方案已保存');
-  showPage('plans');
-}
-
-function gatherPlanData() {
-  const name = document.getElementById('ex-name').value.trim();
-  const target = document.getElementById('ex-target').value.trim();
-  if(!target){alert('请填写被评估企业');return null}
-  return {
-    name: name||target,
-    scenarioId: execState.scenarioId,
-    targetCompany: target,
-    industry: document.getElementById('ex-industry').value.trim(),
-    contact: document.getElementById('ex-contact').value.trim(),
-    ruleId: document.getElementById('ex-rule').value,
-    packageIds: execState.selectedPkgs,
-    weights: execState.weights,
-  };
-}
-
-let scoreCatFilter = '全部';
-function renderExecStep3() {
-  const indMap = Object.fromEntries(D.indicators.map(i=>[i.id,i]));
-  const inds = execState.allInds.map(id=>indMap[id]).filter(Boolean);
-  const cats = ['全部',...new Set(inds.map(i=>i.category))];
-  const filtered = scoreCatFilter==='全部'?inds:inds.filter(i=>i.category===scoreCatFilter);
-  const rule = D.rules.find(r=>r.id===(execState.planData.ruleId||document.getElementById('ex-rule')?.value||'R01'));
-  const wMode = rule?.weightMode||'equal';
-
-  const el = document.getElementById('exec-step-3');
-  el.innerHTML = `<div class="card"><div class="card-title">指标评分</div>
-    <p style="color:var(--text-2);font-size:.85rem;margin-bottom:.75rem">${execState.planData.targetCompany||''} · 共 ${inds.length} 项指标 · ${rule?rule.name:''}</p>
-    <div class="cat-tabs">${cats.map(c=>`<button class="cat-tab ${c===scoreCatFilter?'active':''}" onclick="scoreCatFilter='${c}';renderExecStep3()">${c}</button>`).join('')}</div>
-    ${filtered.map(ind=>{
-      const sc = execState.scores[ind.id]??75;
-      execState.scores[ind.id]=sc;
-      const w = execState.weights[ind.id]||1;
-      const cls=sc>=90?'color-g':sc>=75?'color-b':sc>=60?'color-a':'color-r';
-      const bg=sc>=90?'badge-green':sc>=75?'badge-blue':sc>=60?'badge-amber':'badge-red';
-      return `<div class="score-item">
-        <div class="si-head"><div><div class="si-name">${ind.name}</div><div class="si-desc">${ind.description}</div></div>
-          ${wMode==='weighted'?`<div style="display:flex;align-items:center;gap:.3rem;font-size:.78rem;color:var(--text-2)">权重 <input type="number" min="1" max="10" value="${w}" style="width:45px;padding:.2rem .3rem;border:1px solid var(--border);border-radius:4px;font-size:.78rem;text-align:center" onchange="execState.weights['${ind.id}']=parseInt(this.value)||1"></div>`:''}</div>
-        <div class="si-slider">
-          <input type="range" min="0" max="100" value="${sc}" oninput="updScore('${ind.id}',this.value)">
-          <div class="si-val ${cls}" id="sv-${ind.id}">${sc}</div>
-        </div>
-        <div class="si-labels"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div></div>`;
-    }).join('')}
-    <div class="flex-between" style="margin-top:1rem">
-      ${execState.planData.id?`<button class="btn btn-ghost" onclick="showPage('plans')">← 返回方案列表</button>`:`<button class="btn btn-ghost" onclick="goExec(2)">← 上一步</button>`}
-      <button class="btn btn-primary btn-lg" onclick="submitExec()">提交评估</button>
-    </div></div>`;
-}
-
-function updScore(id,val) {
-  val=parseInt(val);execState.scores[id]=val;
-  const el=document.getElementById('sv-'+id);
-  el.textContent=val;
-  el.className='si-val '+(val>=90?'color-g':val>=75?'color-b':val>=60?'color-a':'color-r');
-}
-
-async function submitExec() {
-  let planId = execState.planData.id;
-  if(!planId) {
-    const body = gatherPlanData();
-    if(!body)return;
-    const plan = await api.post('/api/plans',body);
-    planId = plan.id;
-    execState.planData = plan;
-  }
-  const record = await api.post('/api/records',{planId,scores:execState.scores});
-  await loadAll();
-  execState.step=4;
-  renderExecStep();
-  showExecResult(record);
-}
-
-function showExecResult(r) {
-  const indMap = Object.fromEntries(D.indicators.map(i=>[i.id,i]));
-  const el = document.getElementById('exec-step-4');
-  let catHtml = '';
-  for(const [cat,cd] of Object.entries(r.categoryDetail||{})) {
-    const cls = cd.score>=90?'color-g':cd.score>=75?'color-b':cd.score>=60?'color-a':'color-r';
-    catHtml += `<div style="margin-top:1rem"><div style="font-weight:600;margin-bottom:.4rem">${cat} <span class="${cls}" style="font-size:.85rem">(${cd.score}分 · ${cd.count}项)</span></div>`;
-    for(const [iid,sc] of Object.entries(r.scores)) {
-      const ind=indMap[iid];if(!ind||ind.category!==cat)continue;
-      const bg=sc>=90?'badge-green':sc>=75?'badge-blue':sc>=60?'badge-amber':'badge-red';
-      catHtml+=`<div style="display:flex;justify-content:space-between;padding:.35rem .65rem;background:var(--bg);border-radius:6px;margin-bottom:.25rem;font-size:.84rem"><span>${ind.name}</span><span class="badge ${bg}">${sc}分</span></div>`;
-    }
-    catHtml+='</div>';
-  }
-  el.innerHTML = `<div class="card">
-    <div class="result-hero">
-      <div class="result-big" style="color:${r.gradeColor||'var(--primary)'}">${r.totalScore}</div>
-      <div class="result-badge" style="background:${r.gradeColor||'var(--primary)'}22;color:${r.gradeColor||'var(--primary)'}">${r.grade}</div>
-      <div style="color:var(--text-2);font-size:.88rem">${r.targetCompany} · ${r.scenarioName} · ${r.ruleName}</div>
-      <div style="margin-top:.35rem"><span class="badge ${r.passed?'badge-green':'badge-red'}">${r.passed?'通过':'未通过'}</span></div>
-    </div>
-    ${r.suggestions?.length?`<div class="card-title mt-2">改进建议</div><ul class="suggestion-list">${r.suggestions.map(s=>`<li class="sug-${s.level}">${s.text}</li>`).join('')}</ul>`:''}
-    <div class="card-title mt-2">分类得分明细</div>${catHtml}
-    <div class="text-center" style="margin-top:1.5rem">
-      <button class="btn btn-primary" onclick="execState={step:1,scenarioId:'',planData:{},selectedPkgs:[],allInds:[],scores:{},weights:{}};showPage('execute')">开始新评估</button>
-      <button class="btn btn-outline" onclick="showPage('records')" style="margin-left:.5rem">查看记录</button>
-    </div></div>`;
-}
-
-function goExec(step) {
-  if(step===2 && !execState.scenarioId){alert('请选择一个情景模式');return}
-  if(step===3 && execState.step===2) {
-    if(!document.getElementById('ex-target').value.trim()){alert('请填写被评估企业');return}
-    if(!execState.selectedPkgs.length){alert('请至少选择一个指标包');return}
-    if(!execState.planData.id) {
-      execState.planData.targetCompany = document.getElementById('ex-target').value.trim();
-      execState.planData.ruleId = document.getElementById('ex-rule').value;
-    }
-  }
-  execState.step = step;
-  renderExecStep();
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// Records
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-async function loadRecords() {
-  await loadAll();
-  const el = document.getElementById('records-list');
-  if(!D.records.length){el.innerHTML='<div class="empty"><p>暂无评估记录</p><button class="btn btn-primary mt-1" onclick="showPage(\'execute\')">开始评估</button></div>';return}
-  el.innerHTML = D.records.slice().reverse().map(r=>{
-    const date = r.createdAt?new Date(r.createdAt).toLocaleString('zh-CN'):'';
-    return `<div class="record-card">
-      <div class="rc-score" style="color:${r.gradeColor||'var(--primary)'}">${r.totalScore}</div>
-      <div class="rc-info">
-        <div class="rc-name">${r.targetCompany||r.planName}</div>
-        <div class="rc-meta">${r.scenarioName} · ${r.ruleName} · ${date}</div>
-      </div>
-      <span class="badge" style="background:${r.gradeColor||'var(--primary)'}22;color:${r.gradeColor||'var(--primary)'};margin-right:.5rem">${r.grade}</span>
-      <span class="badge ${r.passed?'badge-green':'badge-red'}" style="margin-right:.5rem">${r.passed?'通过':'未通过'}</span>
-      <div class="rc-actions">
-        <button class="btn btn-ghost btn-sm" onclick="viewRecord('${r.id}')">详情</button>
-        <button class="btn btn-danger btn-sm" onclick="delRecord('${r.id}')">删除</button>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-async function viewRecord(rid) {
-  const r = await api.get('/api/records/'+rid);
-  const indMap = Object.fromEntries(D.indicators.map(i=>[i.id,i]));
-  let catHtml='';
+function showResult(r){
+  const iM=Object.fromEntries(D.indicators.map(i=>[i.id,i]));let ch='';
   for(const[cat,cd]of Object.entries(r.categoryDetail||{})){
-    const cls=cd.score>=90?'color-g':cd.score>=75?'color-b':cd.score>=60?'color-a':'color-r';
-    catHtml+=`<div style="margin-top:1rem"><strong>${cat}</strong> <span class="${cls}">(${cd.score}分)</span>`;
-    for(const[iid,sc]of Object.entries(r.scores)){const ind=indMap[iid];if(!ind||ind.category!==cat)continue;
-      const bg=sc>=90?'badge-green':sc>=75?'badge-blue':sc>=60?'badge-amber':'badge-red';
-      catHtml+=`<div style="display:flex;justify-content:space-between;padding:.35rem .65rem;background:var(--bg);border-radius:6px;margin-top:.25rem;font-size:.84rem"><span>${ind.name}</span><span class="badge ${bg}">${sc}分</span></div>`}
-    catHtml+='</div>'}
-  document.getElementById('md-body').innerHTML=`
-    <div class="result-hero" style="padding:1rem">
-      <div class="result-big" style="font-size:3rem;color:${r.gradeColor}">${r.totalScore}</div>
-      <div class="result-badge" style="background:${r.gradeColor}22;color:${r.gradeColor}">${r.grade}</div>
-      <div style="color:var(--text-2);font-size:.85rem">${r.targetCompany} · ${r.scenarioName} · ${r.ruleName} · ${new Date(r.createdAt).toLocaleString('zh-CN')}</div>
-    </div>
-    ${r.suggestions?.length?`<div style="margin-top:1rem"><strong>改进建议</strong><ul class="suggestion-list" style="margin-top:.4rem">${r.suggestions.map(s=>`<li class="sug-${s.level}">${s.text}</li>`).join('')}</ul></div>`:''}
-    ${catHtml}`;
-  document.getElementById('modal-detail').classList.add('show');
+    ch+=`<div style="margin-top:.85rem"><div style="font-weight:600;margin-bottom:.35rem">${cat} <span class="${gradeClass(cd.score)}" style="font-size:.82rem">(${cd.score}分 · ${cd.count}项)</span></div>`;
+    for(const[iid,sc]of Object.entries(r.scores)){const ind=iM[iid];if(!ind||ind.category!==cat)continue;
+      ch+=`<div style="display:flex;justify-content:space-between;padding:.3rem .6rem;background:var(--bg);border-radius:5px;margin-bottom:.2rem;font-size:.82rem"><span>${ind.name}</span><span class="badge ${gradeBadge(sc)}">${sc}分</span></div>`}
+    ch+='</div>'}
+  document.getElementById('ex-r4').innerHTML=`<div class="card">
+    <div class="rh"><div class="rb" style="color:${r.gradeColor||'var(--c1)'}">${r.totalScore}</div>
+    <div class="rg" style="background:${r.gradeColor||'var(--c1)'}22;color:${r.gradeColor||'var(--c1)'}">${r.grade}</div>
+    <div style="color:var(--tx2);font-size:.85rem">${r.supplierName} · ${r.scenarioName} · ${r.ruleName}</div>
+    <div style="margin-top:.3rem"><span class="badge ${r.passed?'bg-g':'bg-r'}">${r.passed?'通过':'未通过'}</span>
+    <span class="badge bg-t" style="margin-left:.3rem">供应商评级已自动更新</span></div></div>
+    ${r.suggestions?.length?`<div class="card-t" style="margin-top:.75rem">改进建议</div><ul class="sgl">${r.suggestions.map(s=>`<li class="sg-${s.level[0]}">${s.text}</li>`).join('')}</ul>`:''}
+    <div class="card-t" style="margin-top:.75rem">分类得分明细</div>${ch}
+    <div class="tc" style="margin-top:1.25rem"><button class="btn bp" onclick="EX={step:1,sid:'',plan:{},pkgs:[],inds:[],scores:{},weights:{}};nav('execute')">开始新评估</button>
+    <button class="btn bo" onclick="nav('records')" style="margin-left:.4rem">查看记录</button>
+    <button class="btn bo" onclick="nav('suppliers')" style="margin-left:.4rem">查看供应商</button></div></div>`;
 }
-async function delRecord(id){if(!confirm('确定删除？'))return;await api.del('/api/records/'+id);await loadAll();loadRecords()}
+function goEx(s){
+  if(s===2&&!EX.sid){alert('请选择一个情景模式');return}
+  if(s===3&&EX.step===2){
+    if(!document.getElementById('ex-sup').value){alert('请选择供应商');return}
+    if(!EX.pkgs.length){alert('请至少选择一个指标包');return}
+    if(!EX.plan.id){EX.plan.supplierName=D.suppliers.find(x=>x.id===document.getElementById('ex-sup').value)?.name||'';EX.plan.ruleId=document.getElementById('ex-rl').value}
+  }
+  EX.step=s;rExec();window.scrollTo({top:0,behavior:'smooth'});
+}
 
-// ━━━━ Init ━━━━
-loadDashboard();
+// ━━ Records ━━
+async function pgRec(){
+  await LA();const el=document.getElementById('p-records');
+  if(!D.records.length){el.innerHTML='<div class="st">评估记录</div><div class="empty"><p>暂无记录</p><button class="btn bp" style="margin-top:.5rem" onclick="nav(\'execute\')">开始评估</button></div>';return}
+  el.innerHTML=`<div class="st">评估记录</div>`+D.records.slice().reverse().map(r=>{
+    const dt=r.createdAt?new Date(r.createdAt).toLocaleString('zh-CN'):'';
+    return `<div class="rc"><div class="rc-s" style="color:${r.gradeColor||'var(--c1)'}">${r.totalScore}</div>
+      <div class="rc-i"><div class="rc-n">${r.supplierName||r.planName}</div><div class="rc-m">${r.scenarioName} · ${r.ruleName} · ${dt}</div></div>
+      <span class="badge" style="background:${r.gradeColor||'var(--c1)'}22;color:${r.gradeColor||'var(--c1)'};margin-right:.4rem">${r.grade}</span>
+      <span class="badge ${r.passed?'bg-g':'bg-r'}" style="margin-right:.4rem">${r.passed?'通过':'未通过'}</span>
+      <div class="rc-a"><button class="btn bg bs" onclick="viewRec('${r.id}')">详情</button><button class="btn bd bs" onclick="delRec('${r.id}')">删除</button></div></div>`}).join('');
+}
+async function viewRec(rid){
+  const r=await A.g('/api/records/'+rid);const iM=Object.fromEntries(D.indicators.map(i=>[i.id,i]));let ch='';
+  for(const[cat,cd]of Object.entries(r.categoryDetail||{})){ch+=`<div style="margin-top:.75rem"><strong>${cat}</strong> <span class="${gradeClass(cd.score)}">(${cd.score}分)</span>`;
+    for(const[iid,sc]of Object.entries(r.scores)){const ind=iM[iid];if(!ind||ind.category!==cat)continue;ch+=`<div style="display:flex;justify-content:space-between;padding:.3rem .6rem;background:var(--bg);border-radius:5px;margin-top:.2rem;font-size:.82rem"><span>${ind.name}</span><span class="badge ${gradeBadge(sc)}">${sc}分</span></div>`}ch+='</div>'}
+  document.getElementById('md-b').innerHTML=`<div class="rh" style="padding:.75rem"><div class="rb" style="font-size:2.8rem;color:${r.gradeColor}">${r.totalScore}</div><div class="rg" style="background:${r.gradeColor}22;color:${r.gradeColor}">${r.grade}</div>
+    <div style="color:var(--tx2);font-size:.82rem">${r.supplierName} · ${r.scenarioName} · ${r.ruleName} · ${new Date(r.createdAt).toLocaleString('zh-CN')}</div></div>
+    ${r.suggestions?.length?`<div style="margin-top:.75rem"><strong>改进建议</strong><ul class="sgl" style="margin-top:.35rem">${r.suggestions.map(s=>`<li class="sg-${s.level[0]}">${s.text}</li>`).join('')}</ul></div>`:''}${ch}`;
+  om('m-det');
+}
+async function delRec(id){if(!confirm('确定？'))return;await A.d('/api/records/'+id);await LA();pgRec()}
+
+// ━━ System ━━
+async function pgSys(){
+  const settings=await A.g('/api/settings');await LA();const s=D.stats;
+  document.getElementById('p-system').innerHTML=`<div class="st">系统管理</div>
+    <div class="card"><div class="card-t">平台设置</div>
+      <div class="fr"><div class="fg"><label>平台名称</label><input id="sys-pn" value="${settings.platformName||''}"></div>
+      <div class="fg"><label>企业名称</label><input id="sys-cn" value="${settings.companyName||''}"></div></div>
+      <div class="fr"><div class="fg"><label>管理员</label><input id="sys-an" value="${settings.adminName||''}"></div>
+      <div class="fg"><label>版本号</label><input id="sys-ver" value="${settings.version||''}" disabled></div></div>
+      <div style="text-align:right;margin-top:.5rem"><button class="btn bp" onclick="saveSys()">保存设置</button></div></div>
+    <div class="card"><div class="card-t">数据统计</div>
+      <div class="stats" style="margin-top:.5rem">
+        <div class="stat"><b>${s.supplierCount}</b><small>供应商</small></div>
+        <div class="stat"><b>${s.indicatorCount}</b><small>指标</small></div>
+        <div class="stat"><b>${s.packageCount}</b><small>指标包</small></div>
+        <div class="stat"><b>${s.ruleCount}</b><small>打分规则</small></div>
+        <div class="stat"><b>${s.scenarioCount}</b><small>情景模式</small></div>
+        <div class="stat"><b>${s.planCount}</b><small>评估方案</small></div>
+        <div class="stat"><b>${s.totalRecords}</b><small>评估记录</small></div>
+      </div></div>
+    <div class="card"><div class="card-t">关于系统</div>
+      <div style="font-size:.84rem;color:var(--tx2);line-height:1.8">
+        <p>本系统为链主企业提供绿色低碳供应链评估管理功能，支持完整的评估闭环流程：</p>
+        <p><strong>供应商管理</strong> → <strong>情景模式配置</strong> → <strong>评估方案创建</strong> → <strong>指标评分执行</strong> → <strong>结果反馈与评级更新</strong></p>
+        <p style="margin-top:.5rem">核心模块：供应商管理、评估指标、指标包、打分规则、情景模式、评估方案、评估记录、系统管理</p>
+      </div></div>`;
+}
+async function saveSys(){
+  await A.u('/api/settings',{platformName:document.getElementById('sys-pn').value.trim(),companyName:document.getElementById('sys-cn').value.trim(),adminName:document.getElementById('sys-an').value.trim(),version:'1.0.0'});
+  alert('设置已保存');
+}
+
+pgDash();
 </script>
 </body>
 </html>
