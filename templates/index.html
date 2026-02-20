@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>绿色低碳供应链评估系统</title>
+  <style>
+    :root {
+      --primary: #16a34a;
+      --primary-light: #22c55e;
+      --primary-dark: #15803d;
+      --primary-bg: #f0fdf4;
+      --surface: #ffffff;
+      --bg: #f8fafc;
+      --text: #1e293b;
+      --text-secondary: #64748b;
+      --border: #e2e8f0;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+      --excellent: #16a34a;
+      --good: #2563eb;
+      --average: #d97706;
+      --poor: #dc2626;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* ── Layout ─────────────────────────────── */
+    .app-header {
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 50%, var(--primary-light) 100%);
+      color: white;
+      padding: 0 2rem;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-md);
+    }
+    .app-header h1 { font-size: 1.25rem; font-weight: 600; letter-spacing: 0.5px; }
+    .app-header .header-nav { display: flex; gap: 0.25rem; }
+    .app-header .header-nav button {
+      background: rgba(255,255,255,0.15);
+      border: none;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.875rem;
+      transition: background 0.2s;
+    }
+    .app-header .header-nav button:hover,
+    .app-header .header-nav button.active {
+      background: rgba(255,255,255,0.3);
+    }
+
+    .app-container { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ── Cards ──────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      border: 1px solid var(--border);
+    }
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .card-title .icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    /* ── Stats ──────────────────────────────── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .stat-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.25rem;
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+    .stat-card .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    .stat-card .stat-label {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-top: 0.25rem;
+    }
+
+    /* ── Buttons ────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-outline {
+      background: transparent;
+      color: var(--primary);
+      border: 1px solid var(--primary);
+    }
+    .btn-outline:hover { background: var(--primary-bg); }
+    .btn-danger {
+      background: transparent;
+      color: var(--poor);
+      border: 1px solid var(--poor);
+    }
+    .btn-danger:hover { background: #fef2f2; }
+    .btn-sm { padding: 0.35rem 0.75rem; font-size: 0.8rem; }
+    .btn-lg { padding: 0.75rem 1.5rem; font-size: 1rem; }
+
+    /* ── Form ───────────────────────────────── */
+    .form-group { margin-bottom: 1rem; }
+    .form-group label {
+      display: block;
+      font-weight: 500;
+      font-size: 0.875rem;
+      margin-bottom: 0.375rem;
+      color: var(--text);
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 0.625rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.875rem;
+      transition: border-color 0.2s;
+      background: var(--surface);
+      font-family: inherit;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(22,163,74,0.1);
+    }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 640px) { .form-row { grid-template-columns: 1fr; } }
+
+    /* ── Table ──────────────────────────────── */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid var(--border); }
+    th { font-weight: 600; color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; background: var(--bg); }
+    tr:hover td { background: #f8fafb; }
+
+    /* ── Badge ──────────────────────────────── */
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-excellent { background: #dcfce7; color: var(--excellent); }
+    .badge-good { background: #dbeafe; color: var(--good); }
+    .badge-average { background: #fef3c7; color: var(--average); }
+    .badge-poor { background: #fee2e2; color: var(--poor); }
+
+    /* ── Workflow Steps ─────────────────────── */
+    .workflow-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+    .workflow-step {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.25rem;
+      border-radius: 999px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      background: var(--surface);
+      border: 2px solid var(--border);
+      transition: all 0.3s;
+    }
+    .workflow-step .step-num {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; font-weight: 700;
+      background: var(--border);
+      color: var(--text-secondary);
+      flex-shrink: 0;
+    }
+    .workflow-step.active {
+      color: var(--primary);
+      border-color: var(--primary);
+      background: var(--primary-bg);
+    }
+    .workflow-step.active .step-num {
+      background: var(--primary);
+      color: white;
+    }
+    .workflow-step.done {
+      color: var(--primary);
+      border-color: var(--primary-light);
+      background: var(--primary-bg);
+    }
+    .workflow-step.done .step-num {
+      background: var(--primary);
+      color: white;
+    }
+    .workflow-connector {
+      width: 40px;
+      height: 2px;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+    .workflow-connector.done { background: var(--primary); }
+
+    /* ── Indicator Category Tabs ───────────── */
+    .category-tabs {
+      display: flex;
+      gap: 0.375rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+    .category-tab {
+      padding: 0.4rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .category-tab:hover { border-color: var(--primary); color: var(--primary); }
+    .category-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+    /* ── Scoring Slider ────────────────────── */
+    .score-item {
+      background: var(--bg);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      margin-bottom: 0.75rem;
+      border: 1px solid var(--border);
+    }
+    .score-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 0.75rem;
+    }
+    .score-item-name { font-weight: 600; font-size: 0.95rem; }
+    .score-item-desc { font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem; }
+    .score-item-weight { font-size: 0.75rem; color: var(--text-secondary); background: white; padding: 0.2rem 0.5rem; border-radius: 4px; }
+    .score-slider-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .score-slider-row input[type="range"] {
+      flex: 1;
+      -webkit-appearance: none;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--border);
+      outline: none;
+    }
+    .score-slider-row input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .score-display {
+      min-width: 52px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 1.1rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 6px;
+    }
+    .score-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      margin-top: 0.25rem;
+    }
+    .score-ref {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-top: 0.5rem;
+      font-size: 0.75rem;
+    }
+    .score-ref span { padding: 0.15rem 0.4rem; border-radius: 4px; }
+    .score-ref .ref-excellent { background: #dcfce7; color: var(--excellent); }
+    .score-ref .ref-good { background: #dbeafe; color: var(--good); }
+    .score-ref .ref-average { background: #fef3c7; color: var(--average); }
+    .score-ref .ref-poor { background: #fee2e2; color: var(--poor); }
+
+    /* ── Result ─────────────────────────────── */
+    .result-hero {
+      text-align: center;
+      padding: 2rem 1rem;
+    }
+    .result-score {
+      font-size: 4rem;
+      font-weight: 800;
+      line-height: 1;
+      margin-bottom: 0.5rem;
+    }
+    .result-grade {
+      display: inline-block;
+      padding: 0.4rem 1.2rem;
+      border-radius: 999px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+    .suggestion-list { list-style: none; }
+    .suggestion-list li {
+      padding: 0.75rem 1rem;
+      background: var(--bg);
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      border-left: 4px solid var(--primary);
+    }
+
+    /* ── Indicator Check ───────────────────── */
+    .indicator-check {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: var(--surface);
+    }
+    .indicator-check:hover { border-color: var(--primary-light); }
+    .indicator-check.selected { border-color: var(--primary); background: var(--primary-bg); }
+    .indicator-check input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary);
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+    .indicator-check-info { flex: 1; }
+    .indicator-check-name { font-weight: 600; font-size: 0.9rem; }
+    .indicator-check-desc { font-size: 0.8rem; color: var(--text-secondary); }
+    .indicator-check-meta { font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem; }
+
+    /* ── History ────────────────────────────── */
+    .history-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.25rem;
+      border-radius: var(--radius);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      margin-bottom: 0.75rem;
+      box-shadow: var(--shadow);
+      transition: box-shadow 0.2s;
+    }
+    .history-card:hover { box-shadow: var(--shadow-md); }
+    .history-card-info { flex: 1; }
+    .history-card-name { font-weight: 600; font-size: 1rem; }
+    .history-card-meta { font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.2rem; }
+    .history-card-score {
+      font-size: 1.75rem;
+      font-weight: 800;
+      margin: 0 1.5rem;
+    }
+    .history-card-actions { display: flex; gap: 0.5rem; }
+
+    /* ── Empty State ───────────────────────── */
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text-secondary);
+    }
+    .empty-state .empty-icon { font-size: 3rem; margin-bottom: 0.75rem; }
+    .empty-state p { font-size: 0.95rem; }
+
+    /* ── Modal ──────────────────────────────── */
+    .modal-overlay {
+      display: none;
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      width: 90%;
+      max-width: 560px;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 1.5rem;
+    }
+    .modal-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.25rem;
+      cursor: pointer;
+      color: var(--text-secondary);
+      padding: 0.25rem;
+    }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1.5rem; }
+
+    /* ── Utility ────────────────────────────── */
+    .text-center { text-align: center; }
+    .mt-1 { margin-top: 0.5rem; }
+    .mt-2 { margin-top: 1rem; }
+    .mb-1 { margin-bottom: 0.5rem; }
+    .flex-between { display: flex; justify-content: space-between; align-items: center; }
+    .color-excellent { color: var(--excellent); }
+    .color-good { color: var(--good); }
+    .color-average { color: var(--average); }
+    .color-poor { color: var(--poor); }
+    .bg-excellent { background: #dcfce7; color: var(--excellent); }
+    .bg-good { background: #dbeafe; color: var(--good); }
+    .bg-average { background: #fef3c7; color: var(--average); }
+    .bg-poor { background: #fee2e2; color: var(--poor); }
+  </style>
+</head>
+<body>
+
+<header class="app-header">
+  <h1>绿色低碳供应链评估系统</h1>
+  <nav class="header-nav">
+    <button class="active" onclick="showPage('dashboard')">首页概览</button>
+    <button onclick="showPage('assessment')">开始评估</button>
+    <button onclick="showPage('indicators')">指标管理</button>
+    <button onclick="showPage('history')">评估历史</button>
+  </nav>
+</header>
+
+<div class="app-container">
+
+  <!-- ═══════════════ Dashboard ════════════════ -->
+  <div id="page-dashboard" class="page active">
+    <div class="stats-grid" id="stats-grid"></div>
+
+    <div class="card">
+      <div class="card-title">
+        <span class="icon" style="background:#dcfce7;color:var(--primary)">&#9776;</span>
+        评估流程概览
+      </div>
+      <div class="workflow-bar" id="dashboard-workflow"></div>
+      <p style="text-align:center;color:var(--text-secondary);font-size:0.9rem;">
+        本系统支持四步评估流程：基本信息填写 → 指标选择 → 指标评分 → 评估总结，帮助您系统化地评估供应链绿色低碳水平。
+      </p>
+      <div class="text-center mt-2">
+        <button class="btn btn-primary btn-lg" onclick="showPage('assessment')">立即开始评估</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span class="icon" style="background:#dbeafe;color:var(--good)">&#9733;</span>
+        指标体系概要
+      </div>
+      <div id="indicator-summary"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ Assessment ══════════════ -->
+  <div id="page-assessment" class="page">
+    <div class="workflow-bar" id="assess-workflow"></div>
+
+    <!-- Step 1: Basic Info -->
+    <div id="step-1" class="assessment-step">
+      <div class="card">
+        <div class="card-title">
+          <span class="icon" style="background:#dcfce7;color:var(--primary)">1</span>
+          填写基本信息
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>企业/供应链名称 *</label>
+            <input type="text" id="inp-company" placeholder="请输入被评估对象名称">
+          </div>
+          <div class="form-group">
+            <label>所属行业</label>
+            <select id="inp-industry">
+              <option value="">请选择行业</option>
+              <option>制造业</option>
+              <option>电子信息</option>
+              <option>食品饮料</option>
+              <option>汽车工业</option>
+              <option>纺织服装</option>
+              <option>化工医药</option>
+              <option>建筑建材</option>
+              <option>物流运输</option>
+              <option>零售消费</option>
+              <option>其他</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>联系人</label>
+            <input type="text" id="inp-contact" placeholder="评估负责人姓名">
+          </div>
+          <div class="form-group">
+            <label>备注说明</label>
+            <input type="text" id="inp-desc" placeholder="可选备注信息">
+          </div>
+        </div>
+        <div style="text-align:right;margin-top:0.5rem">
+          <button class="btn btn-primary" onclick="goStep(2)">下一步：选择指标 →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Select Indicators -->
+    <div id="step-2" class="assessment-step" style="display:none">
+      <div class="card">
+        <div class="card-title">
+          <span class="icon" style="background:#dcfce7;color:var(--primary)">2</span>
+          选择评估指标
+        </div>
+        <p style="color:var(--text-secondary);font-size:0.875rem;margin-bottom:1rem;">选择本次评估需要涵盖的绿色低碳指标，可根据实际情况勾选适用项。</p>
+        <div class="flex-between mb-1">
+          <div class="category-tabs" id="select-cat-tabs"></div>
+          <button class="btn btn-outline btn-sm" onclick="toggleAllIndicators()">全选/取消</button>
+        </div>
+        <div id="indicator-select-list"></div>
+        <div class="flex-between" style="margin-top:1rem">
+          <button class="btn btn-outline" onclick="goStep(1)">← 上一步</button>
+          <span id="selected-count" style="font-size:0.85rem;color:var(--text-secondary)"></span>
+          <button class="btn btn-primary" onclick="goStep(3)">下一步：开始评分 →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Scoring -->
+    <div id="step-3" class="assessment-step" style="display:none">
+      <div class="card">
+        <div class="card-title">
+          <span class="icon" style="background:#dcfce7;color:var(--primary)">3</span>
+          指标评分
+        </div>
+        <p style="color:var(--text-secondary);font-size:0.875rem;margin-bottom:1rem;">请根据实际表现对每项指标打分（0-100分）。参考标准仅供参考。</p>
+        <div class="category-tabs" id="score-cat-tabs"></div>
+        <div id="scoring-list"></div>
+        <div class="flex-between" style="margin-top:1rem">
+          <button class="btn btn-outline" onclick="goStep(2)">← 上一步</button>
+          <button class="btn btn-primary btn-lg" onclick="submitAssessment()">提交评估</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4: Result -->
+    <div id="step-4" class="assessment-step" style="display:none">
+      <div class="card" id="result-card"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ Indicators ══════════════ -->
+  <div id="page-indicators" class="page">
+    <div class="flex-between mb-1">
+      <h2 style="font-size:1.25rem;font-weight:600">绿色低碳指标管理</h2>
+      <button class="btn btn-primary" onclick="openIndicatorModal()">+ 新增指标</button>
+    </div>
+    <div class="category-tabs" id="manage-cat-tabs" style="margin-bottom:1rem"></div>
+    <div class="card" style="padding:0">
+      <div class="table-wrap">
+        <table id="indicators-table">
+          <thead>
+            <tr>
+              <th>指标名称</th>
+              <th>类别</th>
+              <th>描述</th>
+              <th>单位</th>
+              <th>权重</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="indicators-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ History ═════════════════ -->
+  <div id="page-history" class="page">
+    <div class="flex-between mb-1">
+      <h2 style="font-size:1.25rem;font-weight:600">评估历史记录</h2>
+    </div>
+    <div id="history-list"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ Indicator Modal ════════════ -->
+<div class="modal-overlay" id="indicator-modal">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="modal-indicator-title">新增指标</span>
+      <button class="modal-close" onclick="closeIndicatorModal()">&times;</button>
+    </div>
+    <input type="hidden" id="modal-ind-id">
+    <div class="form-row">
+      <div class="form-group">
+        <label>指标名称 *</label>
+        <input type="text" id="modal-ind-name" placeholder="例如：绿色原材料采购比例">
+      </div>
+      <div class="form-group">
+        <label>类别 *</label>
+        <select id="modal-ind-category">
+          <option value="绿色采购">绿色采购</option>
+          <option value="绿色生产">绿色生产</option>
+          <option value="绿色物流">绿色物流</option>
+          <option value="绿色仓储">绿色仓储</option>
+          <option value="管理体系">管理体系</option>
+          <option value="产品生命周期">产品生命周期</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>描述</label>
+      <textarea id="modal-ind-desc" placeholder="简要描述此指标的评估内容"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>单位</label>
+        <input type="text" id="modal-ind-unit" value="%" placeholder="例如 %、定性">
+      </div>
+      <div class="form-group">
+        <label>权重 (1-10)</label>
+        <input type="number" id="modal-ind-weight" value="5" min="1" max="10">
+      </div>
+    </div>
+    <p style="font-size:0.85rem;font-weight:600;margin-bottom:0.5rem">评分参考标准</p>
+    <div class="form-row">
+      <div class="form-group"><label style="color:var(--excellent)">优秀</label><input type="text" id="modal-sc-excellent" placeholder="≥90%"></div>
+      <div class="form-group"><label style="color:var(--good)">良好</label><input type="text" id="modal-sc-good" placeholder="70%-89%"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label style="color:var(--average)">一般</label><input type="text" id="modal-sc-average" placeholder="50%-69%"></div>
+      <div class="form-group"><label style="color:var(--poor)">待改进</label><input type="text" id="modal-sc-poor" placeholder="<50%"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeIndicatorModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveIndicator()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ Detail Modal ══════════════ -->
+<div class="modal-overlay" id="detail-modal">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-title">
+      <span>评估详情</span>
+      <button class="modal-close" onclick="document.getElementById('detail-modal').classList.remove('show')">&times;</button>
+    </div>
+    <div id="detail-content"></div>
+  </div>
+</div>
+
+<script>
+// ── State ────────────────────────────────────────────────────────────
+let allIndicators = [];
+let selectedIndicatorIds = new Set();
+let currentScores = {};
+let currentStep = 1;
+let currentSelectCat = '全部';
+let currentScoreCat = '全部';
+let currentManageCat = '全部';
+
+// ── Navigation ───────────────────────────────────────────────────────
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('.header-nav button').forEach((b, i) => {
+    b.classList.toggle('active', ['dashboard','assessment','indicators','history'][i] === page);
+  });
+  if (page === 'dashboard') loadDashboard();
+  if (page === 'indicators') loadIndicatorsPage();
+  if (page === 'history') loadHistory();
+  if (page === 'assessment') {
+    currentStep = 1;
+    selectedIndicatorIds.clear();
+    currentScores = {};
+    loadAssessmentIndicators();
+    renderStep();
+  }
+}
+
+// ── Dashboard ────────────────────────────────────────────────────────
+async function loadDashboard() {
+  const [stats, indicators] = await Promise.all([
+    fetch('/api/statistics').then(r => r.json()),
+    fetch('/api/indicators').then(r => r.json())
+  ]);
+
+  document.getElementById('stats-grid').innerHTML = `
+    <div class="stat-card"><div class="stat-value">${stats.total}</div><div class="stat-label">累计评估次数</div></div>
+    <div class="stat-card"><div class="stat-value">${stats.avgScore}</div><div class="stat-label">平均评估得分</div></div>
+    <div class="stat-card"><div class="stat-value">${stats.indicatorCount}</div><div class="stat-label">评估指标数</div></div>
+    <div class="stat-card"><div class="stat-value">${stats.categoryCount}</div><div class="stat-label">指标类别数</div></div>
+  `;
+
+  const wf = document.getElementById('dashboard-workflow');
+  const steps = ['基本信息', '指标选择', '指标评分', '评估总结'];
+  wf.innerHTML = steps.map((s, i) => `
+    <div class="workflow-step done">
+      <span class="step-num">${i+1}</span> ${s}
+    </div>
+    ${i < steps.length - 1 ? '<div class="workflow-connector done"></div>' : ''}
+  `).join('');
+
+  const cats = {};
+  indicators.forEach(ind => {
+    if (!cats[ind.category]) cats[ind.category] = [];
+    cats[ind.category].push(ind);
+  });
+  let html = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem">';
+  for (const [cat, inds] of Object.entries(cats)) {
+    html += `<div style="background:var(--bg);border-radius:8px;padding:1rem;border:1px solid var(--border)">
+      <div style="font-weight:600;margin-bottom:0.5rem;color:var(--primary)">${cat} <span style="font-weight:400;font-size:0.8rem;color:var(--text-secondary)">(${inds.length}项)</span></div>
+      <ul style="list-style:none;font-size:0.85rem;color:var(--text-secondary)">
+        ${inds.map(ind => `<li style="padding:0.15rem 0">· ${ind.name}</li>`).join('')}
+      </ul>
+    </div>`;
+  }
+  html += '</div>';
+  document.getElementById('indicator-summary').innerHTML = html;
+}
+
+// ── Assessment Workflow ──────────────────────────────────────────────
+async function loadAssessmentIndicators() {
+  allIndicators = await fetch('/api/indicators').then(r => r.json());
+}
+
+function renderStep() {
+  [1,2,3,4].forEach(s => {
+    document.getElementById('step-' + s).style.display = s === currentStep ? '' : 'none';
+  });
+
+  const steps = ['基本信息', '指标选择', '指标评分', '评估总结'];
+  const wf = document.getElementById('assess-workflow');
+  wf.innerHTML = steps.map((s, i) => {
+    const cls = (i + 1) < currentStep ? 'done' : (i + 1) === currentStep ? 'active' : '';
+    return `<div class="workflow-step ${cls}">
+      <span class="step-num">${(i+1) < currentStep ? '&#10003;' : i+1}</span> ${s}
+    </div>${i < steps.length - 1 ? `<div class="workflow-connector ${(i+1) < currentStep ? 'done' : ''}"></div>` : ''}`;
+  }).join('');
+
+  if (currentStep === 2) renderIndicatorSelect();
+  if (currentStep === 3) renderScoring();
+}
+
+function goStep(step) {
+  if (step === 2 && currentStep === 1) {
+    if (!document.getElementById('inp-company').value.trim()) {
+      alert('请输入企业/供应链名称');
+      return;
+    }
+  }
+  if (step === 3 && currentStep === 2) {
+    if (selectedIndicatorIds.size === 0) {
+      alert('请至少选择一项指标');
+      return;
+    }
+  }
+  currentStep = step;
+  renderStep();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function getCategories(indicators) {
+  return ['全部', ...new Set(indicators.map(i => i.category))];
+}
+
+function renderIndicatorSelect() {
+  const cats = getCategories(allIndicators);
+  const tabsEl = document.getElementById('select-cat-tabs');
+  tabsEl.innerHTML = cats.map(c =>
+    `<button class="category-tab ${c===currentSelectCat?'active':''}" onclick="currentSelectCat='${c}';renderIndicatorSelect()">${c}</button>`
+  ).join('');
+
+  const filtered = currentSelectCat === '全部' ? allIndicators : allIndicators.filter(i => i.category === currentSelectCat);
+  const listEl = document.getElementById('indicator-select-list');
+  listEl.innerHTML = filtered.map(ind => {
+    const checked = selectedIndicatorIds.has(ind.id);
+    return `<label class="indicator-check ${checked ? 'selected' : ''}" onclick="toggleIndicator('${ind.id}', event)">
+      <input type="checkbox" ${checked ? 'checked' : ''} tabindex="-1">
+      <div class="indicator-check-info">
+        <div class="indicator-check-name">${ind.name}</div>
+        <div class="indicator-check-desc">${ind.description}</div>
+        <div class="indicator-check-meta">${ind.category} · 权重 ${ind.weight} · ${ind.unit}</div>
+      </div>
+    </label>`;
+  }).join('');
+
+  document.getElementById('selected-count').textContent = `已选 ${selectedIndicatorIds.size} 项指标`;
+}
+
+function toggleIndicator(id, e) {
+  if (e) e.preventDefault();
+  if (selectedIndicatorIds.has(id)) {
+    selectedIndicatorIds.delete(id);
+  } else {
+    selectedIndicatorIds.add(id);
+  }
+  renderIndicatorSelect();
+}
+
+function toggleAllIndicators() {
+  const visible = currentSelectCat === '全部' ? allIndicators : allIndicators.filter(i => i.category === currentSelectCat);
+  const allSelected = visible.every(i => selectedIndicatorIds.has(i.id));
+  visible.forEach(i => {
+    if (allSelected) selectedIndicatorIds.delete(i.id);
+    else selectedIndicatorIds.add(i.id);
+  });
+  renderIndicatorSelect();
+}
+
+function renderScoring() {
+  const selected = allIndicators.filter(i => selectedIndicatorIds.has(i.id));
+  const cats = getCategories(selected);
+  const tabsEl = document.getElementById('score-cat-tabs');
+  tabsEl.innerHTML = cats.map(c =>
+    `<button class="category-tab ${c===currentScoreCat?'active':''}" onclick="currentScoreCat='${c}';renderScoring()">${c}</button>`
+  ).join('');
+
+  const filtered = currentScoreCat === '全部' ? selected : selected.filter(i => i.category === currentScoreCat);
+  const listEl = document.getElementById('scoring-list');
+  listEl.innerHTML = filtered.map(ind => {
+    const score = currentScores[ind.id] ?? 75;
+    currentScores[ind.id] = score;
+    const colorClass = score >= 90 ? 'color-excellent' : score >= 75 ? 'color-good' : score >= 60 ? 'color-average' : 'color-poor';
+    const bgClass = score >= 90 ? 'bg-excellent' : score >= 75 ? 'bg-good' : score >= 60 ? 'bg-average' : 'bg-poor';
+    const sc = ind.scoring || {};
+    return `<div class="score-item">
+      <div class="score-item-header">
+        <div>
+          <div class="score-item-name">${ind.name}</div>
+          <div class="score-item-desc">${ind.description}</div>
+        </div>
+        <div class="score-item-weight">权重 ${ind.weight}</div>
+      </div>
+      <div class="score-slider-row">
+        <input type="range" min="0" max="100" value="${score}" oninput="updateScore('${ind.id}', this.value)">
+        <div class="score-display ${bgClass}" id="sd-${ind.id}">${score}</div>
+      </div>
+      <div class="score-labels"><span>0 (差)</span><span>50 (一般)</span><span>100 (优秀)</span></div>
+      ${sc.excellent ? `<div class="score-ref">
+        <span class="ref-excellent">优秀: ${sc.excellent}</span>
+        <span class="ref-good">良好: ${sc.good || '-'}</span>
+        <span class="ref-average">一般: ${sc.average || '-'}</span>
+        <span class="ref-poor">待改进: ${sc.poor || '-'}</span>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function updateScore(id, val) {
+  val = parseInt(val);
+  currentScores[id] = val;
+  const el = document.getElementById('sd-' + id);
+  el.textContent = val;
+  el.className = 'score-display ' + (val >= 90 ? 'bg-excellent' : val >= 75 ? 'bg-good' : val >= 60 ? 'bg-average' : 'bg-poor');
+}
+
+async function submitAssessment() {
+  const body = {
+    companyName: document.getElementById('inp-company').value.trim(),
+    industry: document.getElementById('inp-industry').value,
+    contact: document.getElementById('inp-contact').value.trim(),
+    description: document.getElementById('inp-desc').value.trim(),
+    selectedIndicators: [...selectedIndicatorIds],
+    scores: currentScores,
+  };
+  const res = await fetch('/api/assessments', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const result = await res.json();
+  showResult(result);
+  currentStep = 4;
+  renderStep();
+}
+
+function showResult(r) {
+  const colorClass = r.totalScore >= 90 ? 'color-excellent' : r.totalScore >= 75 ? 'color-good' : r.totalScore >= 60 ? 'color-average' : 'color-poor';
+  const bgClass = r.totalScore >= 90 ? 'bg-excellent' : r.totalScore >= 75 ? 'bg-good' : r.totalScore >= 60 ? 'bg-average' : 'bg-poor';
+  const indMap = {};
+  allIndicators.forEach(i => indMap[i.id] = i);
+
+  let detailHtml = '';
+  const cats = {};
+  for (const id of (r.selectedIndicators || [])) {
+    const ind = indMap[id];
+    if (!ind) continue;
+    if (!cats[ind.category]) cats[ind.category] = [];
+    cats[ind.category].push({ ind, score: r.scores[id] || 0 });
+  }
+  for (const [cat, items] of Object.entries(cats)) {
+    const avg = items.reduce((s, x) => s + x.score, 0) / items.length;
+    const catColor = avg >= 90 ? 'color-excellent' : avg >= 75 ? 'color-good' : avg >= 60 ? 'color-average' : 'color-poor';
+    detailHtml += `<div style="margin-top:1.25rem"><div style="font-weight:600;margin-bottom:0.5rem">${cat} <span class="${catColor}" style="font-size:0.85rem">(均分 ${avg.toFixed(1)})</span></div>`;
+    items.forEach(({ ind, score }) => {
+      const sc = score >= 90 ? 'bg-excellent' : score >= 75 ? 'bg-good' : score >= 60 ? 'bg-average' : 'bg-poor';
+      detailHtml += `<div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0.75rem;background:var(--bg);border-radius:6px;margin-bottom:0.3rem;font-size:0.875rem">
+        <span>${ind.name}</span>
+        <span class="badge ${sc}">${score}分</span>
+      </div>`;
+    });
+    detailHtml += '</div>';
+  }
+
+  document.getElementById('result-card').innerHTML = `
+    <div class="result-hero">
+      <div class="result-score ${colorClass}">${r.totalScore}</div>
+      <div class="result-grade ${bgClass}">${r.grade}</div>
+      <p style="color:var(--text-secondary);font-size:0.9rem">${r.companyName} · ${r.industry || '未填写行业'}</p>
+    </div>
+    <div class="card-title" style="margin-top:1rem"><span class="icon" style="background:#fef3c7;color:var(--average)">!</span>改进建议</div>
+    <ul class="suggestion-list">
+      ${r.suggestions.map(s => `<li>${s}</li>`).join('')}
+    </ul>
+    ${detailHtml}
+    <div class="text-center" style="margin-top:1.5rem">
+      <button class="btn btn-primary" onclick="showPage('assessment')">开始新评估</button>
+      <button class="btn btn-outline" onclick="showPage('history')" style="margin-left:0.5rem">查看历史</button>
+    </div>
+  `;
+}
+
+// ── Indicator Management ─────────────────────────────────────────────
+async function loadIndicatorsPage() {
+  allIndicators = await fetch('/api/indicators').then(r => r.json());
+  const cats = getCategories(allIndicators);
+  document.getElementById('manage-cat-tabs').innerHTML = cats.map(c =>
+    `<button class="category-tab ${c===currentManageCat?'active':''}" onclick="currentManageCat='${c}';renderIndicatorsTable()">${c}</button>`
+  ).join('');
+  renderIndicatorsTable();
+}
+
+function renderIndicatorsTable() {
+  const filtered = currentManageCat === '全部' ? allIndicators : allIndicators.filter(i => i.category === currentManageCat);
+  const tbody = document.getElementById('indicators-tbody');
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-secondary)">暂无指标数据</td></tr>';
+    return;
+  }
+  tbody.innerHTML = filtered.map(ind => `<tr>
+    <td style="font-weight:500">${ind.name}</td>
+    <td><span class="badge badge-good">${ind.category}</span></td>
+    <td style="max-width:240px;font-size:0.8rem;color:var(--text-secondary)">${ind.description}</td>
+    <td>${ind.unit}</td>
+    <td>${ind.weight}</td>
+    <td>
+      <button class="btn btn-outline btn-sm" onclick='editIndicator(${JSON.stringify(ind).replace(/'/g, "\\'")})'>编辑</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteIndicator('${ind.id}')">删除</button>
+    </td>
+  </tr>`).join('');
+}
+
+function openIndicatorModal(ind) {
+  document.getElementById('modal-indicator-title').textContent = ind ? '编辑指标' : '新增指标';
+  document.getElementById('modal-ind-id').value = ind ? ind.id : '';
+  document.getElementById('modal-ind-name').value = ind ? ind.name : '';
+  document.getElementById('modal-ind-category').value = ind ? ind.category : '绿色采购';
+  document.getElementById('modal-ind-desc').value = ind ? ind.description : '';
+  document.getElementById('modal-ind-unit').value = ind ? ind.unit : '%';
+  document.getElementById('modal-ind-weight').value = ind ? ind.weight : 5;
+  const sc = ind ? (ind.scoring || {}) : {};
+  document.getElementById('modal-sc-excellent').value = sc.excellent || '';
+  document.getElementById('modal-sc-good').value = sc.good || '';
+  document.getElementById('modal-sc-average').value = sc.average || '';
+  document.getElementById('modal-sc-poor').value = sc.poor || '';
+  document.getElementById('indicator-modal').classList.add('show');
+}
+
+function closeIndicatorModal() {
+  document.getElementById('indicator-modal').classList.remove('show');
+}
+
+function editIndicator(ind) {
+  openIndicatorModal(ind);
+}
+
+async function saveIndicator() {
+  const id = document.getElementById('modal-ind-id').value;
+  const data = {
+    name: document.getElementById('modal-ind-name').value.trim(),
+    category: document.getElementById('modal-ind-category').value,
+    description: document.getElementById('modal-ind-desc').value.trim(),
+    unit: document.getElementById('modal-ind-unit').value.trim(),
+    weight: parseInt(document.getElementById('modal-ind-weight').value) || 5,
+    scoring: {
+      excellent: document.getElementById('modal-sc-excellent').value.trim(),
+      good: document.getElementById('modal-sc-good').value.trim(),
+      average: document.getElementById('modal-sc-average').value.trim(),
+      poor: document.getElementById('modal-sc-poor').value.trim(),
+    },
+  };
+  if (!data.name) { alert('请填写指标名称'); return; }
+
+  if (id) {
+    await fetch('/api/indicators/' + id, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+  } else {
+    await fetch('/api/indicators', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+  }
+  closeIndicatorModal();
+  loadIndicatorsPage();
+}
+
+async function deleteIndicator(id) {
+  if (!confirm('确定要删除此指标吗？')) return;
+  await fetch('/api/indicators/' + id, { method: 'DELETE' });
+  loadIndicatorsPage();
+}
+
+// ── History ──────────────────────────────────────────────────────────
+async function loadHistory() {
+  const assessments = await fetch('/api/assessments').then(r => r.json());
+  const el = document.getElementById('history-list');
+  if (assessments.length === 0) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">&#128203;</div><p>暂无评估记录</p><button class="btn btn-primary mt-2" onclick="showPage(\'assessment\')">开始第一次评估</button></div>';
+    return;
+  }
+  el.innerHTML = assessments.slice().reverse().map(a => {
+    const colorClass = a.totalScore >= 90 ? 'color-excellent' : a.totalScore >= 75 ? 'color-good' : a.totalScore >= 60 ? 'color-average' : 'color-poor';
+    const bgClass = a.totalScore >= 90 ? 'badge-excellent' : a.totalScore >= 75 ? 'badge-good' : a.totalScore >= 60 ? 'badge-average' : 'badge-poor';
+    const date = a.createdAt ? new Date(a.createdAt).toLocaleString('zh-CN') : '';
+    return `<div class="history-card">
+      <div class="history-card-info">
+        <div class="history-card-name">${a.companyName}</div>
+        <div class="history-card-meta">${a.industry || ''} ${a.contact ? '· ' + a.contact : ''} · ${date}</div>
+      </div>
+      <div class="history-card-score ${colorClass}">${a.totalScore}</div>
+      <span class="badge ${bgClass}" style="margin-right:1rem">${a.grade}</span>
+      <div class="history-card-actions">
+        <button class="btn btn-outline btn-sm" onclick="viewDetail('${a.id}')">详情</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteAssessment('${a.id}')">删除</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function viewDetail(id) {
+  allIndicators = await fetch('/api/indicators').then(r => r.json());
+  const a = await fetch('/api/assessments/' + id).then(r => r.json());
+  const indMap = {};
+  allIndicators.forEach(i => indMap[i.id] = i);
+
+  const colorClass = a.totalScore >= 90 ? 'color-excellent' : a.totalScore >= 75 ? 'color-good' : a.totalScore >= 60 ? 'color-average' : 'color-poor';
+  const bgClass = a.totalScore >= 90 ? 'bg-excellent' : a.totalScore >= 75 ? 'bg-good' : a.totalScore >= 60 ? 'bg-average' : 'bg-poor';
+
+  let detailHtml = `<div class="result-hero" style="padding:1rem">
+    <div class="result-score ${colorClass}" style="font-size:3rem">${a.totalScore}</div>
+    <div class="result-grade ${bgClass}">${a.grade}</div>
+    <p style="color:var(--text-secondary);font-size:0.85rem">${a.companyName} · ${a.industry || '未填写行业'} · ${new Date(a.createdAt).toLocaleString('zh-CN')}</p>
+  </div>`;
+
+  if (a.suggestions && a.suggestions.length) {
+    detailHtml += '<div style="margin-top:1rem"><strong>改进建议：</strong><ul class="suggestion-list" style="margin-top:0.5rem">' +
+      a.suggestions.map(s => `<li>${s}</li>`).join('') + '</ul></div>';
+  }
+
+  const cats = {};
+  for (const id of (a.selectedIndicators || [])) {
+    const ind = indMap[id];
+    if (!ind) continue;
+    if (!cats[ind.category]) cats[ind.category] = [];
+    cats[ind.category].push({ ind, score: a.scores[id] || 0 });
+  }
+  for (const [cat, items] of Object.entries(cats)) {
+    detailHtml += `<div style="margin-top:1rem"><strong>${cat}</strong>`;
+    items.forEach(({ ind, score }) => {
+      const sc = score >= 90 ? 'badge-excellent' : score >= 75 ? 'badge-good' : score >= 60 ? 'badge-average' : 'badge-poor';
+      detailHtml += `<div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0.75rem;background:var(--bg);border-radius:6px;margin-top:0.3rem;font-size:0.85rem">
+        <span>${ind.name}</span><span class="badge ${sc}">${score}分</span></div>`;
+    });
+    detailHtml += '</div>';
+  }
+
+  document.getElementById('detail-content').innerHTML = detailHtml;
+  document.getElementById('detail-modal').classList.add('show');
+}
+
+async function deleteAssessment(id) {
+  if (!confirm('确定要删除此评估记录吗？')) return;
+  await fetch('/api/assessments/' + id, { method: 'DELETE' });
+  loadHistory();
+}
+
+// ── Init ─────────────────────────────────────────────────────────────
+loadDashboard();
+</script>
+</body>
+</html>
