@@ -16,6 +16,7 @@
         scoring: '评估打分',
         suppliers: '供应商列表',
         'supplier-detail': 'S001 评估详情',
+        'base-data': '基础数据管理',
     };
 
     function init() {
@@ -54,7 +55,7 @@
     function closeModal() { modalOverlay.classList.remove('active'); }
 
     function renderPage(page) {
-        const r = { dashboard: renderDashboard, 'indicator-types': renderIndicatorTypes, 'indicator-tree': renderIndicatorTree, scenarios: renderScenarios, plans: renderPlans, scoring: renderScoring, suppliers: renderSuppliers, 'supplier-detail': renderSupplierDetail };
+        const r = { dashboard: renderDashboard, 'indicator-types': renderIndicatorTypes, 'indicator-tree': renderIndicatorTree, scenarios: renderScenarios, plans: renderPlans, scoring: renderScoring, suppliers: renderSuppliers, 'supplier-detail': renderSupplierDetail, 'base-data': renderBaseData };
         if (r[page]) r[page]();
     }
 
@@ -1403,6 +1404,378 @@
                 }).join('')}
             </div>`;
         }).join('');
+    }
+
+    // ===== Base Data Management =====
+    let bdTab = 'indicator-types';
+
+    function renderBaseData() {
+        const tabs = [
+            { key: 'indicator-types', label: '指标类型', count: INDICATOR_TYPES.length },
+            { key: 'level1', label: '一级指标', count: LEVEL1_INDICATORS.length },
+            { key: 'level2', label: '二级指标', count: LEVEL2_INDICATORS.length },
+            { key: 'scoring-rules', label: '评分规则', count: SCORING_RULES.length },
+            { key: 'scenarios-bd', label: '评估场景', count: ASSESSMENT_SCENARIOS.length },
+            { key: 'suppliers-bd', label: '供应商', count: SUPPLIERS.length },
+        ];
+
+        pageContent.innerHTML = `
+            <div class="page-header">
+                <div><h1>基础数据管理</h1><p>维护评估体系所需的全部基础数据，各业务模块自动引用最新配置</p></div>
+            </div>
+            <div class="tabs" id="bdTabs">
+                ${tabs.map(t => `<button class="tab ${t.key === bdTab ? 'active' : ''}" data-bd="${t.key}">${t.label} <span style="font-size:10px;opacity:0.6">(${t.count})</span></button>`).join('')}
+            </div>
+            <div id="bdContent">${renderBdTab()}</div>
+        `;
+
+        document.querySelectorAll('#bdTabs .tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                bdTab = tab.dataset.bd;
+                document.querySelectorAll('#bdTabs .tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('bdContent').innerHTML = renderBdTab();
+                bindBdActions();
+            });
+        });
+        bindBdActions();
+    }
+
+    function renderBdTab() {
+        const renderers = {
+            'indicator-types': renderBdIndicatorTypes,
+            'level1': renderBdLevel1,
+            'level2': renderBdLevel2,
+            'scoring-rules': renderBdScoringRules,
+            'scenarios-bd': renderBdScenarios,
+            'suppliers-bd': renderBdSuppliers,
+        };
+        return (renderers[bdTab] || (() => ''))();
+    }
+
+    function bdUsageInfo(type, code) {
+        let refs = [];
+        if (type === 'indicator-type') {
+            const l1c = LEVEL1_INDICATORS.filter(i => i.type === code).length;
+            const plans = ASSESSMENT_PLANS.filter(p => p.categories.includes(code)).length;
+            refs.push(`${l1c} 个一级指标`);
+            if (plans) refs.push(`${plans} 个评估方案`);
+        } else if (type === 'level1') {
+            const l2c = LEVEL2_INDICATORS.filter(i => i.l1 === code).length;
+            const plans = ASSESSMENT_PLANS.filter(p => p.selectedL1.includes(code)).length;
+            refs.push(`${l2c} 个二级指标`);
+            if (plans) refs.push(`${plans} 个方案引用`);
+        } else if (type === 'level2') {
+            const l3c = S001_SCORES.filter(s => s.l2 === code).length;
+            if (l3c) refs.push(`${l3c} 条评分数据`);
+        } else if (type === 'scoring-rule') {
+            const plans = ASSESSMENT_PLANS.filter(p => p.scoringRule === code).length;
+            if (plans) refs.push(`${plans} 个方案使用`);
+        } else if (type === 'scenario') {
+            const plans = ASSESSMENT_PLANS.filter(p => p.scenario === code).length;
+            if (plans) refs.push(`${plans} 个方案关联`);
+        } else if (type === 'supplier') {
+            const plans = ASSESSMENT_PLANS.filter(p => p.targetSuppliers.includes(code)).length;
+            const scores = S001_SCORES.length;
+            if (plans) refs.push(`${plans} 个方案`);
+            if (code === 'S001') refs.push(`${scores} 条评分`);
+        }
+        return refs.length ? `<span style="font-size:11px;color:var(--text-muted)">${refs.join(' · ')}</span>` : '<span style="font-size:11px;color:var(--text-muted)">暂无引用</span>';
+    }
+
+    // ----- Indicator Types -----
+    function renderBdIndicatorTypes() {
+        return `
+            <div class="card" style="margin-bottom:12px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+                <div><span style="font-size:14px;font-weight:600">指标类型</span><span style="font-size:12px;color:var(--text-muted);margin-left:8px">评估维度分类 (A–H)，被一级指标和评估方案引用</span></div>
+                <button class="btn btn-primary btn-sm bd-add" data-type="indicator-type">+ 新增类型</button>
+            </div>
+            <div class="card" style="padding:0">
+                <div class="table-wrapper"><table class="data-table">
+                    <thead><tr><th style="width:50px">编码</th><th style="width:40px">颜色</th><th>名称</th><th>说明</th><th>引用情况</th><th style="width:100px">操作</th></tr></thead>
+                    <tbody>${INDICATOR_TYPES.map(t => `<tr>
+                        <td style="font-weight:700;color:${t.color};font-size:15px">${t.code}</td>
+                        <td><span style="width:20px;height:20px;border-radius:4px;background:${t.color};display:inline-block"></span></td>
+                        <td style="font-weight:600">${t.name}</td>
+                        <td style="font-size:12px;color:var(--text-secondary)">${t.desc}</td>
+                        <td>${bdUsageInfo('indicator-type', t.code)}</td>
+                        <td><a class="action-link bd-edit" data-type="indicator-type" data-code="${t.code}">编辑</a></td>
+                    </tr>`).join('')}</tbody>
+                </table></div>
+            </div>`;
+    }
+
+    // ----- Level 1 -----
+    function renderBdLevel1() {
+        return `
+            <div class="card" style="margin-bottom:12px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+                <div><span style="font-size:14px;font-weight:600">一级指标</span><span style="font-size:12px;color:var(--text-muted);margin-left:8px">隶属指标类型，被二级指标和评估方案引用</span></div>
+                <div style="display:flex;gap:8px;align-items:center">
+                    <select id="bdL1Filter" style="padding:5px 10px;border:1px solid var(--border);border-radius:var(--radius);font-size:12px;font-family:inherit">
+                        <option value="">全部类型</option>
+                        ${INDICATOR_TYPES.map(t => `<option value="${t.code}">${t.code}. ${t.name}</option>`).join('')}
+                    </select>
+                    <button class="btn btn-primary btn-sm bd-add" data-type="level1">+ 新增一级指标</button>
+                </div>
+            </div>
+            <div class="card" style="padding:0">
+                <div class="table-wrapper"><table class="data-table" id="bdL1Table">
+                    <thead><tr><th style="width:60px">编码</th><th style="width:70px">所属类型</th><th>指标名称</th><th>引用情况</th><th style="width:100px">操作</th></tr></thead>
+                    <tbody id="bdL1Body">${renderBdL1Rows(LEVEL1_INDICATORS)}</tbody>
+                </table></div>
+            </div>`;
+    }
+
+    function renderBdL1Rows(list) {
+        return list.map(l => {
+            const t = INDICATOR_TYPES.find(x => x.code === l.type);
+            return `<tr>
+                <td style="font-family:monospace;font-weight:600;color:${getTypeColor(l.type)}">${l.code}</td>
+                <td><span style="padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;background:${getTypeColor(l.type)}15;color:${getTypeColor(l.type)}">${l.type}. ${t?.name?.substring(0, 4) || ''}</span></td>
+                <td style="font-weight:500">${l.name}</td>
+                <td>${bdUsageInfo('level1', l.code)}</td>
+                <td><a class="action-link bd-edit" data-type="level1" data-code="${l.code}">编辑</a></td>
+            </tr>`;
+        }).join('');
+    }
+
+    // ----- Level 2 -----
+    function renderBdLevel2() {
+        return `
+            <div class="card" style="margin-bottom:12px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+                <div><span style="font-size:14px;font-weight:600">二级指标</span><span style="font-size:12px;color:var(--text-muted);margin-left:8px">评估的具体考核项，隶属一级指标</span></div>
+                <div style="display:flex;gap:8px;align-items:center">
+                    <select id="bdL2Filter" style="padding:5px 10px;border:1px solid var(--border);border-radius:var(--radius);font-size:12px;font-family:inherit">
+                        <option value="">全部一级指标</option>
+                        ${LEVEL1_INDICATORS.map(l => `<option value="${l.code}">${l.code} ${l.name.substring(0, 12)}</option>`).join('')}
+                    </select>
+                    <button class="btn btn-primary btn-sm bd-add" data-type="level2">+ 新增二级指标</button>
+                </div>
+            </div>
+            <div class="card" style="padding:0">
+                <div class="table-wrapper"><table class="data-table" id="bdL2Table">
+                    <thead><tr><th style="width:60px">编码</th><th style="width:60px">上级</th><th>指标名称</th><th>指标说明</th><th>引用</th><th style="width:100px">操作</th></tr></thead>
+                    <tbody id="bdL2Body">${renderBdL2Rows(LEVEL2_INDICATORS)}</tbody>
+                </table></div>
+            </div>`;
+    }
+
+    function renderBdL2Rows(list) {
+        return list.map(l => {
+            const color = getTypeColor(l.code.charAt(0));
+            return `<tr>
+                <td style="font-family:monospace;font-weight:600;color:${color};font-size:12px">${l.code}</td>
+                <td style="font-family:monospace;font-size:11px;color:var(--text-muted)">${l.l1}</td>
+                <td style="font-weight:500;font-size:13px">${l.name}</td>
+                <td style="font-size:12px;color:var(--text-secondary);max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${l.desc}">${l.desc}</td>
+                <td>${bdUsageInfo('level2', l.code)}</td>
+                <td><a class="action-link bd-edit" data-type="level2" data-code="${l.code}">编辑</a></td>
+            </tr>`;
+        }).join('');
+    }
+
+    // ----- Scoring Rules -----
+    function renderBdScoringRules() {
+        return `
+            <div class="card" style="margin-bottom:12px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+                <div><span style="font-size:14px;font-weight:600">评分规则</span><span style="font-size:12px;color:var(--text-muted);margin-left:8px">评估方案打分时使用的计算规则模板</span></div>
+                <button class="btn btn-primary btn-sm bd-add" data-type="scoring-rule">+ 新增规则</button>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px">
+                ${SCORING_RULES.map(r => `
+                    <div class="card" style="border-left:4px solid var(--primary)">
+                        <div class="card-header">
+                            <h3 style="font-size:14px">${r.name}</h3>
+                            <a class="action-link bd-edit" data-type="scoring-rule" data-code="${r.id}">编辑</a>
+                        </div>
+                        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:8px">${r.desc}</p>
+                        <div style="padding:6px 10px;background:var(--bg);border-radius:var(--radius-sm);font-family:monospace;font-size:11px;color:var(--text-muted)">${r.formula}</div>
+                        <div style="margin-top:8px">${bdUsageInfo('scoring-rule', r.id)}</div>
+                    </div>
+                `).join('')}
+            </div>`;
+    }
+
+    // ----- Scenarios -----
+    function renderBdScenarios() {
+        return `
+            <div class="card" style="margin-bottom:12px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+                <div><span style="font-size:14px;font-weight:600">评估场景</span><span style="font-size:12px;color:var(--text-muted);margin-left:8px">评估方案关联的业务场景定义</span></div>
+                <button class="btn btn-primary btn-sm bd-add" data-type="scenario">+ 新增场景</button>
+            </div>
+            <div class="card" style="padding:0">
+                <div class="table-wrapper"><table class="data-table">
+                    <thead><tr><th style="width:80px">编号</th><th>场景名称</th><th>评估对象类别</th><th>适用对象</th><th style="width:50px">优先级</th><th>引用</th><th style="width:100px">操作</th></tr></thead>
+                    <tbody>${ASSESSMENT_SCENARIOS.map(s => `<tr>
+                        <td style="font-family:monospace;font-size:12px;font-weight:600">${s.id}</td>
+                        <td style="font-weight:500">${s.name}</td>
+                        <td style="font-size:12px">${s.target}</td>
+                        <td style="font-size:12px;color:var(--text-secondary);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.applicable}</td>
+                        <td>${priorityTag(s.priority)}</td>
+                        <td>${bdUsageInfo('scenario', s.id)}</td>
+                        <td><a class="action-link bd-edit" data-type="scenario" data-code="${s.id}">编辑</a></td>
+                    </tr>`).join('')}</tbody>
+                </table></div>
+            </div>`;
+    }
+
+    // ----- Suppliers -----
+    function renderBdSuppliers() {
+        return `
+            <div class="card" style="margin-bottom:12px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+                <div><span style="font-size:14px;font-weight:600">供应商</span><span style="font-size:12px;color:var(--text-muted);margin-left:8px">评估对象的基础档案，被评估方案和打分引用</span></div>
+                <button class="btn btn-primary btn-sm bd-add" data-type="supplier">+ 新增供应商</button>
+            </div>
+            <div class="card" style="padding:0">
+                <div class="table-wrapper"><table class="data-table">
+                    <thead><tr><th>编号</th><th>名称</th><th>行业</th><th>类型</th><th>区域</th><th>评级</th><th>状态</th><th>联系人</th><th>引用</th><th>操作</th></tr></thead>
+                    <tbody>${SUPPLIERS.map(s => `<tr>
+                        <td style="font-family:monospace;font-size:12px;font-weight:600">${s.id}</td>
+                        <td style="font-weight:500;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.name}</td>
+                        <td style="font-size:12px">${s.industry}</td>
+                        <td><span class="tag tag-gray" style="font-size:10px">${s.level}</span></td>
+                        <td style="font-size:12px">${s.region}</td>
+                        <td>${gradeTag(s.grade)}</td>
+                        <td>${statusTag(s.status)}</td>
+                        <td style="font-size:12px">${s.contact}</td>
+                        <td>${bdUsageInfo('supplier', s.id)}</td>
+                        <td><a class="action-link bd-edit" data-type="supplier" data-code="${s.id}">编辑</a></td>
+                    </tr>`).join('')}</tbody>
+                </table></div>
+            </div>`;
+    }
+
+    // ----- CRUD Modals -----
+    function bindBdActions() {
+        document.querySelectorAll('.bd-add').forEach(btn => {
+            btn.addEventListener('click', () => openBdModal(btn.dataset.type, null));
+        });
+        document.querySelectorAll('.bd-edit').forEach(btn => {
+            btn.addEventListener('click', () => openBdModal(btn.dataset.type, btn.dataset.code));
+        });
+        document.getElementById('bdL1Filter')?.addEventListener('change', e => {
+            const v = e.target.value;
+            const filtered = v ? LEVEL1_INDICATORS.filter(l => l.type === v) : LEVEL1_INDICATORS;
+            document.getElementById('bdL1Body').innerHTML = renderBdL1Rows(filtered);
+            bindBdActions();
+        });
+        document.getElementById('bdL2Filter')?.addEventListener('change', e => {
+            const v = e.target.value;
+            const filtered = v ? LEVEL2_INDICATORS.filter(l => l.l1 === v) : LEVEL2_INDICATORS;
+            document.getElementById('bdL2Body').innerHTML = renderBdL2Rows(filtered);
+            bindBdActions();
+        });
+    }
+
+    function openBdModal(type, code) {
+        const isEdit = !!code;
+        const titles = { 'indicator-type': '指标类型', 'level1': '一级指标', 'level2': '二级指标', 'scoring-rule': '评分规则', 'scenario': '评估场景', 'supplier': '供应商' };
+        const title = (isEdit ? '编辑' : '新增') + titles[type];
+        let body = '';
+
+        if (type === 'indicator-type') {
+            const item = isEdit ? INDICATOR_TYPES.find(x => x.code === code) : { code: '', name: '', color: '#10B981', desc: '' };
+            body = `
+                <div class="form-row">
+                    <div class="form-group"><label class="required">编码</label><input type="text" id="bdCode" value="${item.code}" placeholder="A-H" maxlength="1" ${isEdit ? 'readonly style="background:var(--bg)"' : ''}></div>
+                    <div class="form-group"><label class="required">颜色</label><input type="color" id="bdColor" value="${item.color}" style="height:36px;padding:2px"></div>
+                </div>
+                <div class="form-group"><label class="required">名称</label><input type="text" id="bdName" value="${item.name}" placeholder="例：企业碳管理与绩效"></div>
+                <div class="form-group"><label>说明</label><input type="text" id="bdDesc" value="${item.desc}" placeholder="简要描述该维度的评估范围"></div>
+                ${isEdit ? `<div style="margin-top:12px;padding:10px;background:var(--bg);border-radius:var(--radius);font-size:12px;color:var(--text-muted)">引用情况: ${bdUsageInfo('indicator-type', code)}</div>` : ''}`;
+        } else if (type === 'level1') {
+            const item = isEdit ? LEVEL1_INDICATORS.find(x => x.code === code) : { code: '', name: '', type: '' };
+            body = `
+                <div class="form-row">
+                    <div class="form-group"><label class="required">编码</label><input type="text" id="bdCode" value="${item.code}" placeholder="例: A1" ${isEdit ? 'readonly style="background:var(--bg)"' : ''}></div>
+                    <div class="form-group"><label class="required">所属类型</label>
+                        <select id="bdType">${INDICATOR_TYPES.map(t => `<option value="${t.code}" ${t.code === item.type ? 'selected' : ''}>${t.code}. ${t.name}</option>`).join('')}</select>
+                    </div>
+                </div>
+                <div class="form-group"><label class="required">指标名称</label><input type="text" id="bdName" value="${item.name}" placeholder="例: 温室气体排放与核算能力"></div>
+                ${isEdit ? `<div style="margin-top:12px;padding:10px;background:var(--bg);border-radius:var(--radius);font-size:12px;color:var(--text-muted)">引用情况: ${bdUsageInfo('level1', code)}</div>` : ''}`;
+        } else if (type === 'level2') {
+            const item = isEdit ? LEVEL2_INDICATORS.find(x => x.code === code) : { code: '', name: '', l1: '', desc: '' };
+            body = `
+                <div class="form-row">
+                    <div class="form-group"><label class="required">编码</label><input type="text" id="bdCode" value="${item.code}" placeholder="例: A1.1" ${isEdit ? 'readonly style="background:var(--bg)"' : ''}></div>
+                    <div class="form-group"><label class="required">上级一级指标</label>
+                        <select id="bdL1">${LEVEL1_INDICATORS.map(l => `<option value="${l.code}" ${l.code === item.l1 ? 'selected' : ''}>${l.code} ${l.name.substring(0, 14)}</option>`).join('')}</select>
+                    </div>
+                </div>
+                <div class="form-group"><label class="required">指标名称</label><input type="text" id="bdName" value="${item.name}" placeholder="例: 排放源识别与边界界定"></div>
+                <div class="form-group"><label>指标说明</label><textarea id="bdDesc" rows="2" placeholder="简要描述该指标的考核内容">${item.desc}</textarea></div>
+                ${isEdit ? `<div style="margin-top:12px;padding:10px;background:var(--bg);border-radius:var(--radius);font-size:12px;color:var(--text-muted)">引用情况: ${bdUsageInfo('level2', code)}</div>` : ''}`;
+        } else if (type === 'scoring-rule') {
+            const item = isEdit ? SCORING_RULES.find(x => x.id === code) : { id: '', name: '', desc: '', formula: '' };
+            body = `
+                <div class="form-group"><label class="required">规则ID</label><input type="text" id="bdCode" value="${item.id}" placeholder="例: RULE-NEW" ${isEdit ? 'readonly style="background:var(--bg)"' : ''}></div>
+                <div class="form-group"><label class="required">规则名称</label><input type="text" id="bdName" value="${item.name}" placeholder="例: 自定义评分规则"></div>
+                <div class="form-group"><label class="required">规则说明</label><textarea id="bdDesc" rows="2" placeholder="描述评分逻辑">${item.desc}</textarea></div>
+                <div class="form-group"><label class="required">计算公式</label><input type="text" id="bdFormula" value="${item.formula}" placeholder="例: score = min(actual/benchmark * 10, 10)"></div>
+                ${isEdit ? `<div style="margin-top:12px;padding:10px;background:var(--bg);border-radius:var(--radius);font-size:12px;color:var(--text-muted)">引用情况: ${bdUsageInfo('scoring-rule', code)}</div>` : ''}`;
+        } else if (type === 'scenario') {
+            const item = isEdit ? ASSESSMENT_SCENARIOS.find(x => x.id === code) : { id: '', name: '', target: '', applicable: '', value: '', priority: '高' };
+            body = `
+                <div class="form-row">
+                    <div class="form-group"><label class="required">场景编号</label><input type="text" id="bdCode" value="${item.id}" placeholder="例: Scene-P" ${isEdit ? 'readonly style="background:var(--bg)"' : ''}></div>
+                    <div class="form-group"><label class="required">优先级</label>
+                        <select id="bdPriority"><option value="高" ${item.priority === '高' ? 'selected' : ''}>高</option><option value="中" ${item.priority === '中' ? 'selected' : ''}>中</option></select>
+                    </div>
+                </div>
+                <div class="form-group"><label class="required">场景名称</label><input type="text" id="bdName" value="${item.name}" placeholder="例: 新供应商准入绿色能力审查"></div>
+                <div class="form-row">
+                    <div class="form-group"><label>评估对象类别</label><input type="text" id="bdTarget" value="${item.target}" placeholder="例: 一级供应商、二级供应商"></div>
+                    <div class="form-group"><label>适用对象</label><input type="text" id="bdApplicable" value="${item.applicable}" placeholder="具体适用范围"></div>
+                </div>
+                <div class="form-group"><label>应用价值</label><textarea id="bdValue" rows="3" placeholder="描述该评估场景的应用价值">${item.value}</textarea></div>
+                ${isEdit ? `<div style="margin-top:12px;padding:10px;background:var(--bg);border-radius:var(--radius);font-size:12px;color:var(--text-muted)">引用情况: ${bdUsageInfo('scenario', code)}</div>` : ''}`;
+        } else if (type === 'supplier') {
+            const item = isEdit ? SUPPLIERS.find(x => x.id === code) : { id: '', name: '', industry: '', level: '一级供应商', status: '合作中', contact: '', phone: '', grade: 'B', region: '华东' };
+            body = `
+                <div class="form-row">
+                    <div class="form-group"><label class="required">供应商编号</label><input type="text" id="bdCode" value="${item.id}" placeholder="例: S013" ${isEdit ? 'readonly style="background:var(--bg)"' : ''}></div>
+                    <div class="form-group"><label class="required">评级</label>
+                        <select id="bdGrade"><option value="A" ${item.grade === 'A' ? 'selected' : ''}>A · 优秀</option><option value="B" ${item.grade === 'B' ? 'selected' : ''}>B · 良好</option><option value="C" ${item.grade === 'C' ? 'selected' : ''}>C · 一般</option><option value="D" ${item.grade === 'D' ? 'selected' : ''}>D · 需改进</option></select>
+                    </div>
+                </div>
+                <div class="form-group"><label class="required">供应商名称</label><input type="text" id="bdName" value="${item.name}" placeholder="公司全称"></div>
+                <div class="form-row">
+                    <div class="form-group"><label>行业</label><input type="text" id="bdIndustry" value="${item.industry}" placeholder="例: 汽车零部件制造"></div>
+                    <div class="form-group"><label>类型</label>
+                        <select id="bdLevel"><option ${item.level === '一级供应商' ? 'selected' : ''}>一级供应商</option><option ${item.level === '二级供应商' ? 'selected' : ''}>二级供应商</option><option ${item.level === '关键原材料供应商' ? 'selected' : ''}>关键原材料供应商</option><option ${item.level === '物流服务商' ? 'selected' : ''}>物流服务商</option></select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>区域</label>
+                        <select id="bdRegion"><option ${item.region === '华东' ? 'selected' : ''}>华东</option><option ${item.region === '华南' ? 'selected' : ''}>华南</option><option ${item.region === '华北' ? 'selected' : ''}>华北</option><option ${item.region === '华中' ? 'selected' : ''}>华中</option><option ${item.region === '西南' ? 'selected' : ''}>西南</option><option ${item.region === '东北' ? 'selected' : ''}>东北</option></select>
+                    </div>
+                    <div class="form-group"><label>状态</label>
+                        <select id="bdStatus"><option ${item.status === '合作中' ? 'selected' : ''}>合作中</option><option ${item.status === '暂停合作' ? 'selected' : ''}>暂停合作</option><option ${item.status === '终止合作' ? 'selected' : ''}>终止合作</option></select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>联系人</label><input type="text" id="bdContact" value="${item.contact}" placeholder="联系人姓名"></div>
+                    <div class="form-group"><label>电话</label><input type="text" id="bdPhone" value="${item.phone}" placeholder="联系电话"></div>
+                </div>
+                ${isEdit ? `<div style="margin-top:12px;padding:10px;background:var(--bg);border-radius:var(--radius);font-size:12px;color:var(--text-muted)">引用情况: ${bdUsageInfo('supplier', code)}</div>` : ''}`;
+        }
+
+        openModal(title, body);
+        const prevBtn = document.getElementById('modalPrev');
+        const nextBtn = document.getElementById('modalNext');
+        const confirmBtn = document.getElementById('modalConfirm');
+        const cancelBtn = document.getElementById('modalCancel');
+        prevBtn.style.display = 'none';
+        nextBtn.style.display = 'none';
+        confirmBtn.style.display = '';
+        cancelBtn.style.display = '';
+        confirmBtn.textContent = isEdit ? '保存修改' : '确认新增';
+        confirmBtn.onclick = () => {
+            alert((isEdit ? '已保存修改' : '已新增') + '（原型演示）');
+            closeModal();
+        };
+        cancelBtn.onclick = closeModal;
     }
 
     init();
