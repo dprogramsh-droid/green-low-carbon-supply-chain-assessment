@@ -250,14 +250,89 @@ const ASSESSMENT_SCENARIOS = [
     { id: 'Scene-O', name: '绿色供应链示范项目/联合减碳试点遴选', target: '绿色表现优秀供应商', applicable: '绿色表现优秀、配合度高的供应商（通常 A 级）', value: '筛选最适合开展联合减碳、技术示范、绿色金融支持的合作伙伴，树立行业标杆', priority: '中' },
 ];
 
-// ===== 评估方案 (Assessment Plans - derived from scenarios) =====
+// ===== 评分规则模板 =====
+const SCORING_RULES = [
+    { id: 'RULE-LINEAR', name: '线性比例评分', desc: '得分 = (实际值/基准值) × 满分，封顶10分', formula: 'score = min(actual/benchmark * 10, 10)' },
+    { id: 'RULE-THRESHOLD', name: '阈值等级评分', desc: '按阈值区间评分：优秀(10)、合格(7)、待改进(4)、不合格(0)', formula: '≥90%→10, 70-89%→7, 60-69%→4, <60%→0' },
+    { id: 'RULE-BINARY', name: '是否达标评分', desc: '达标得满分10，未达标得0分', formula: 'yes→10, no→0' },
+    { id: 'RULE-WEIGHTED', name: '加权综合评分', desc: '各子项得分按权重汇总', formula: 'Σ(score_i × weight_i)' },
+    { id: 'RULE-INVERSE', name: '反向指标评分', desc: '指标值越低越好，如碳排放强度、敏感度', formula: 'score = max(0, 10 - (actual/benchmark) * 10)' },
+];
+
+// ===== 评估方案 (Assessment Plans) =====
 const ASSESSMENT_PLANS = [
-    { id: 'PLAN-001', name: '2026年度供应商绿色绩效综合评估', scenario: 'Scene-B', status: '进行中', startDate: '2026-01-15', endDate: '2026-03-31', responsible: '张主管', targetCount: 12, completedCount: 3, categories: ['A','B','C','D'] },
-    { id: 'PLAN-002', name: '新车型平台供应商导入绿色评估', scenario: 'Scene-D', status: '计划中', startDate: '2026-03-01', endDate: '2026-05-30', responsible: '李经理', targetCount: 8, completedCount: 0, categories: ['A','B','C'] },
-    { id: 'PLAN-003', name: '出口供应商 CBAM 合规专项评估', scenario: 'Scene-G', status: '已完成', startDate: '2025-10-01', endDate: '2025-12-31', responsible: '王主管', targetCount: 5, completedCount: 5, categories: ['A','C','D'] },
-    { id: 'PLAN-004', name: '战略供应商年度综合评估（S001）', scenario: 'Scene-C', status: '已完成', startDate: '2025-11-01', endDate: '2026-01-15', responsible: '张主管', targetCount: 1, completedCount: 1, categories: ['A','B','C','D','E','F','G','H'] },
-    { id: 'PLAN-005', name: '关键材料低碳替代评估', scenario: 'Scene-E', status: '进行中', startDate: '2026-02-01', endDate: '2026-04-30', responsible: '赵工', targetCount: 6, completedCount: 2, categories: ['B','C'] },
-    { id: 'PLAN-006', name: '动力电池供应链碳足迹专项评估', scenario: 'Scene-F', status: '计划中', startDate: '2026-04-01', endDate: '2026-06-30', responsible: '陈经理', targetCount: 10, completedCount: 0, categories: ['A','B','C','D','E'] },
+    {
+        id: 'PLAN-001', name: '2026年度供应商绿色绩效综合评估', scenario: 'Scene-B',
+        status: '进行中', startDate: '2026-01-15', endDate: '2026-03-31', responsible: '张主管',
+        targetCount: 12, completedCount: 3,
+        purpose: '将绿色低碳维度纳入年度供应商综合考核，权重占比15%，评估结果直接影响订单分配、账期及评优资格，推动供应链绿色转型',
+        scoringRule: 'RULE-LINEAR',
+        gradeThresholds: { excellent: 90, good: 70, fair: 60 },
+        categories: ['A','B','C','D'],
+        categoryWeights: { A: 30, B: 25, C: 25, D: 20 },
+        targetSuppliers: ['S001','S002','S003','S004','S005','S006','S007','S008','S009','S010','S011','S012'],
+        selectedL1: ['A1','A2','A3','B1','B2','B3','C1','C2','C3','D1','D2','D3'],
+    },
+    {
+        id: 'PLAN-002', name: '新车型平台供应商导入绿色评估', scenario: 'Scene-D',
+        status: '计划中', startDate: '2026-03-01', endDate: '2026-05-30', responsible: '李经理',
+        targetCount: 8, completedCount: 0,
+        purpose: '确保参与新车型EP32平台开发的零部件供应商从设计源头满足低碳目标，支持整车产品碳足迹LCA达标及欧盟碳披露合规',
+        scoringRule: 'RULE-THRESHOLD',
+        gradeThresholds: { excellent: 85, good: 70, fair: 55 },
+        categories: ['A','B','C'],
+        categoryWeights: { A: 25, B: 40, C: 35 },
+        targetSuppliers: ['S001','S003','S004','S006','S008'],
+        selectedL1: ['A1','A2','B1','B2','B3','B4','B5','C1','C2','C4'],
+    },
+    {
+        id: 'PLAN-003', name: '出口供应商 CBAM 合规专项评估', scenario: 'Scene-G',
+        status: '已完成', startDate: '2025-10-01', endDate: '2025-12-31', responsible: '王主管',
+        targetCount: 5, completedCount: 5,
+        purpose: '提前识别出口欧盟/北美的供应商碳关税风险，对钢铝电池等CBAM品类供应商开展碳成本影响测算，制定合规应对方案',
+        scoringRule: 'RULE-WEIGHTED',
+        gradeThresholds: { excellent: 90, good: 75, fair: 60 },
+        categories: ['A','C','D'],
+        categoryWeights: { A: 30, C: 30, D: 40 },
+        targetSuppliers: ['S001','S009','S010','S011','S012'],
+        selectedL1: ['A1','A3','C2','C5','D1','D2','D3','D4'],
+    },
+    {
+        id: 'PLAN-004', name: '战略供应商年度综合评估（S001）', scenario: 'Scene-C',
+        status: '已完成', startDate: '2025-11-01', endDate: '2026-01-15', responsible: '张主管',
+        targetCount: 1, completedCount: 1,
+        purpose: '对A级战略供应商S001全面评估全链低碳能力，涵盖所有8个维度，作为长期合作、联合研发及优先支持决策依据',
+        scoringRule: 'RULE-LINEAR',
+        gradeThresholds: { excellent: 90, good: 70, fair: 60 },
+        categories: ['A','B','C','D','E','F','G','H'],
+        categoryWeights: { A: 20, B: 15, C: 20, D: 10, E: 10, F: 10, G: 8, H: 7 },
+        targetSuppliers: ['S001'],
+        selectedL1: ['A1','A2','A3','A4','A5','B1','B2','B3','B4','B5','C1','C2','C3','C4','C5','D1','D2','D3','D4','E1','E2','E3','E4','F1','F2','F3','F4','G1','G2','G3','G4','H1','H2','H3','H4'],
+    },
+    {
+        id: 'PLAN-005', name: '关键材料低碳替代评估', scenario: 'Scene-E',
+        status: '进行中', startDate: '2026-02-01', endDate: '2026-04-30', responsible: '赵工',
+        targetCount: 6, completedCount: 2,
+        purpose: '为钢材、铝材、锂盐等关键高碳材料的低碳替代提供量化对比依据，推动产品碳强度下降，降低CBAM成本风险',
+        scoringRule: 'RULE-LINEAR',
+        gradeThresholds: { excellent: 85, good: 70, fair: 55 },
+        categories: ['B','C'],
+        categoryWeights: { B: 55, C: 45 },
+        targetSuppliers: ['S009','S010','S012','S003','S005','S006'],
+        selectedL1: ['B1','B3','B5','C1','C2','C3'],
+    },
+    {
+        id: 'PLAN-006', name: '动力电池供应链碳足迹专项评估', scenario: 'Scene-F',
+        status: '计划中', startDate: '2026-04-01', endDate: '2026-06-30', responsible: '陈经理',
+        targetCount: 10, completedCount: 0,
+        purpose: '满足欧盟电池护照、双积分、碳足迹披露要求，对电池全链（正极/负极/电芯/PACK/BMS）供应商实施碳足迹专项评估',
+        scoringRule: 'RULE-WEIGHTED',
+        gradeThresholds: { excellent: 88, good: 72, fair: 58 },
+        categories: ['A','B','C','D','E'],
+        categoryWeights: { A: 20, B: 30, C: 20, D: 15, E: 15 },
+        targetSuppliers: ['S001','S003','S004','S005','S008','S009','S010'],
+        selectedL1: ['A1','A2','A4','B1','B2','B3','B4','B5','C1','C2','C4','D1','D2','D3','E1','E2'],
+    },
 ];
 
 // ===== 供应商 (Suppliers) =====

@@ -363,12 +363,12 @@
     // ===== Plans =====
     function renderPlans() {
         pageContent.innerHTML = `
-            <div class="page-header"><div><h1>评估方案</h1><p>管理具体的评估方案执行计划与进度跟踪</p></div>
-                <button class="btn btn-primary">+ 创建评估方案</button></div>
+            <div class="page-header"><div><h1>评估方案</h1><p>创建与管理评估方案，配置评估指标、评分规则、评估对象与评估目的</p></div>
+                <button class="btn btn-primary" id="btnCreatePlan">+ 创建评估方案</button></div>
             <div class="filter-bar">
                 <select id="planStatusFilter"><option value="">全部状态</option><option>进行中</option><option>已完成</option><option>计划中</option></select>
             </div>
-            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:16px" id="planList">
+            <div style="display:flex;flex-direction:column;gap:16px" id="planList">
                 ${renderPlanCards(ASSESSMENT_PLANS)}
             </div>
         `;
@@ -376,6 +376,15 @@
             const v = e.target.value;
             const filtered = v ? ASSESSMENT_PLANS.filter(p => p.status === v) : ASSESSMENT_PLANS;
             document.getElementById('planList').innerHTML = renderPlanCards(filtered);
+            bindPlanDetailBtns();
+        });
+        document.getElementById('btnCreatePlan').addEventListener('click', openCreatePlanWizard);
+        bindPlanDetailBtns();
+    }
+
+    function bindPlanDetailBtns() {
+        document.querySelectorAll('.plan-detail-btn').forEach(btn => {
+            btn.addEventListener('click', () => showPlanDetail(btn.dataset.planId));
         });
     }
 
@@ -383,29 +392,418 @@
         return list.map(p => {
             const pct = Math.round(p.completedCount / p.targetCount * 100);
             const scenario = ASSESSMENT_SCENARIOS.find(s => s.id === p.scenario);
+            const rule = SCORING_RULES.find(r => r.id === p.scoringRule);
+            const supplierNames = p.targetSuppliers.map(sid => SUPPLIERS.find(x => x.id === sid)?.name?.substring(0, 6) + '...').slice(0, 3);
+            const moreCount = p.targetSuppliers.length - 3;
+
             return `
-            <div class="card">
-                <div class="card-header">
-                    <span style="font-family:monospace;font-size:11px;color:var(--text-muted)">${p.id}</span>
-                    ${statusTag(p.status)}
-                </div>
-                <h3 style="font-size:15px;margin-bottom:10px">${p.name}</h3>
-                <div class="detail-grid" style="margin-bottom:12px">
-                    <div class="detail-item"><label>关联场景</label><span><span class="tag tag-purple">${p.scenario}</span></span></div>
-                    <div class="detail-item"><label>负责人</label><span>${p.responsible}</span></div>
-                    <div class="detail-item"><label>起止日期</label><span style="font-size:12px">${p.startDate} ~ ${p.endDate}</span></div>
-                    <div class="detail-item"><label>评估维度</label><span style="display:flex;gap:4px;flex-wrap:wrap">${p.categories.map(c => `<span style="padding:1px 6px;border-radius:4px;font-size:10px;font-weight:600;background:${getTypeColor(c)}15;color:${getTypeColor(c)}">${c}</span>`).join('')}</span></div>
-                </div>
-                <div>
-                    <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-                        <span style="font-size:12px">评估进度</span>
-                        <span style="font-size:12px;font-weight:600">${p.completedCount}/${p.targetCount} 供应商</span>
+            <div class="card" style="cursor:pointer" >
+                <div style="display:flex;gap:20px;flex-wrap:wrap">
+                    <div style="flex:1;min-width:280px">
+                        <div class="card-header" style="margin-bottom:8px">
+                            <div style="display:flex;align-items:center;gap:8px">
+                                <span style="font-family:monospace;font-size:11px;padding:2px 8px;background:var(--bg);border-radius:4px;color:var(--text-muted)">${p.id}</span>
+                                ${statusTag(p.status)}
+                            </div>
+                            <a class="action-link plan-detail-btn" data-plan-id="${p.id}" style="font-size:13px">查看详情 →</a>
+                        </div>
+                        <h3 style="font-size:16px;margin-bottom:6px">${p.name}</h3>
+                        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${p.purpose}</p>
+
+                        <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px">
+                            <div class="inline-stat"><span>关联场景</span><span class="tag tag-purple" style="font-size:10px">${p.scenario}</span></div>
+                            <div class="inline-stat"><span>负责人</span><strong>${p.responsible}</strong></div>
+                            <div class="inline-stat"><span>周期</span><strong style="font-size:12px">${p.startDate} ~ ${p.endDate}</strong></div>
+                        </div>
+
+                        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                            <span style="font-size:12px;color:var(--text-muted)">评估进度</span>
+                            <span style="font-size:12px;font-weight:600">${p.completedCount} / ${p.targetCount} 供应商</span>
+                        </div>
+                        ${progressBar(pct)}
                     </div>
-                    ${progressBar(pct)}
+
+                    <div style="width:220px;display:flex;flex-direction:column;gap:8px;flex-shrink:0">
+                        <div style="font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:2px">评估维度 & 权重</div>
+                        ${p.categories.map(c => {
+                            const w = p.categoryWeights[c] || 0;
+                            const t = INDICATOR_TYPES.find(x => x.code === c);
+                            return `<div style="display:flex;align-items:center;gap:6px">
+                                <span style="width:18px;height:18px;border-radius:4px;background:${getTypeColor(c)}18;color:${getTypeColor(c)};font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center">${c}</span>
+                                <span style="flex:1;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t?.name || c}</span>
+                                <span style="font-size:12px;font-weight:700;color:${getTypeColor(c)}">${w}%</span>
+                            </div>`;
+                        }).join('')}
+
+                        <div style="margin-top:6px;font-size:11px;font-weight:600;color:var(--text-muted)">评分规则</div>
+                        <div style="font-size:11px;color:var(--text-secondary)">${rule?.name || p.scoringRule}</div>
+
+                        <div style="margin-top:4px;font-size:11px;font-weight:600;color:var(--text-muted)">评估对象 (${p.targetSuppliers.length})</div>
+                        <div style="font-size:11px;color:var(--text-secondary)">${supplierNames.join('、')}${moreCount > 0 ? ` 等${p.targetSuppliers.length}家` : ''}</div>
+                    </div>
                 </div>
-                ${scenario ? `<div style="margin-top:10px;font-size:11px;color:var(--text-muted)">场景: ${scenario.name}</div>` : ''}
             </div>`;
         }).join('');
+    }
+
+    // ===== Plan Detail Modal =====
+    function showPlanDetail(planId) {
+        const p = ASSESSMENT_PLANS.find(x => x.id === planId);
+        if (!p) return;
+        const scenario = ASSESSMENT_SCENARIOS.find(s => s.id === p.scenario);
+        const rule = SCORING_RULES.find(r => r.id === p.scoringRule);
+        const pct = Math.round(p.completedCount / p.targetCount * 100);
+
+        const html = `
+            <div class="plan-section">
+                <div class="plan-section-title"><span class="section-icon" style="background:var(--info-light);color:var(--info)"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg></span>基本信息</div>
+                <div class="detail-grid">
+                    <div class="detail-item"><label>方案编号</label><span style="font-family:monospace">${p.id}</span></div>
+                    <div class="detail-item"><label>状态</label><span>${statusTag(p.status)}</span></div>
+                    <div class="detail-item"><label>负责人</label><span>${p.responsible}</span></div>
+                    <div class="detail-item"><label>起止日期</label><span>${p.startDate} ~ ${p.endDate}</span></div>
+                    <div class="detail-item"><label>关联场景</label><span><span class="tag tag-purple">${p.scenario}</span> ${scenario?.name || ''}</span></div>
+                </div>
+            </div>
+
+            <div class="plan-section">
+                <div class="plan-section-title"><span class="section-icon" style="background:var(--primary-light);color:var(--primary)"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg></span>评估目的</div>
+                <p style="font-size:13px;color:var(--text-secondary);line-height:1.7;padding:10px 14px;background:var(--bg);border-radius:var(--radius)">${p.purpose}</p>
+            </div>
+
+            <div class="plan-section">
+                <div class="plan-section-title"><span class="section-icon" style="background:var(--warning-light);color:#92400E"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812z" clip-rule="evenodd"/></svg></span>评分规则 & 分级阈值</div>
+                <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px">
+                    <div style="flex:1;padding:12px;background:var(--bg);border-radius:var(--radius);min-width:200px">
+                        <div style="font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:4px">评分规则</div>
+                        <div style="font-size:14px;font-weight:600">${rule?.name || '-'}</div>
+                        <div style="font-size:11px;color:var(--text-secondary);margin-top:2px">${rule?.desc || ''}</div>
+                        <div style="font-size:11px;color:var(--text-muted);margin-top:4px;font-family:monospace">${rule?.formula || ''}</div>
+                    </div>
+                    <div style="display:flex;gap:8px;align-items:stretch">
+                        <div style="padding:12px 16px;background:var(--primary-light);border-radius:var(--radius);text-align:center;min-width:70px"><div style="font-size:10px;font-weight:600;color:var(--primary-dark)">优秀</div><div style="font-size:18px;font-weight:700;color:var(--primary)">≥${p.gradeThresholds.excellent}</div></div>
+                        <div style="padding:12px 16px;background:var(--secondary-light);border-radius:var(--radius);text-align:center;min-width:70px"><div style="font-size:10px;font-weight:600;color:var(--secondary)">良好</div><div style="font-size:18px;font-weight:700;color:var(--secondary)">≥${p.gradeThresholds.good}</div></div>
+                        <div style="padding:12px 16px;background:var(--warning-light);border-radius:var(--radius);text-align:center;min-width:70px"><div style="font-size:10px;font-weight:600;color:#92400E">一般</div><div style="font-size:18px;font-weight:700;color:#92400E">≥${p.gradeThresholds.fair}</div></div>
+                        <div style="padding:12px 16px;background:var(--danger-light);border-radius:var(--radius);text-align:center;min-width:70px"><div style="font-size:10px;font-weight:600;color:var(--danger)">需改进</div><div style="font-size:18px;font-weight:700;color:var(--danger)">&lt;${p.gradeThresholds.fair}</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="plan-section">
+                <div class="plan-section-title"><span class="section-icon" style="background:#E0E7FF;color:#4338CA"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5z"/></svg></span>评估指标配置 (${p.selectedL1.length} 项一级指标)</div>
+                ${p.categories.map(c => {
+                    const t = INDICATOR_TYPES.find(x => x.code === c);
+                    const w = p.categoryWeights[c] || 0;
+                    const l1s = p.selectedL1.filter(code => code.startsWith(c)).map(code => LEVEL1_INDICATORS.find(x => x.code === code)).filter(Boolean);
+                    return `<div style="margin-bottom:12px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+                        <div style="padding:8px 14px;background:${getTypeColor(c)}08;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
+                            <span style="width:22px;height:22px;border-radius:4px;background:${getTypeColor(c)}20;color:${getTypeColor(c)};font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center">${c}</span>
+                            <span style="font-weight:600;font-size:13px">${t?.name || c}</span>
+                            <span style="margin-left:auto;font-size:13px;font-weight:700;color:${getTypeColor(c)}">权重 ${w}%</span>
+                        </div>
+                        <div style="padding:8px 14px;display:flex;flex-wrap:wrap;gap:6px">
+                            ${l1s.map(l => `<span class="chip chip-primary">${l.code} ${l.name}</span>`).join('')}
+                        </div>
+                    </div>`;
+                }).join('')}
+            </div>
+
+            <div class="plan-section">
+                <div class="plan-section-title"><span class="section-icon" style="background:var(--primary-light);color:var(--primary-dark)"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg></span>评估对象 (${p.targetSuppliers.length} 家供应商)</div>
+                <div class="table-wrapper">
+                    <table class="data-table"><thead><tr><th>编号</th><th>供应商名称</th><th>类型</th><th>评级</th><th>进度</th></tr></thead>
+                    <tbody>${p.targetSuppliers.map(sid => {
+                        const sup = SUPPLIERS.find(x => x.id === sid);
+                        if (!sup) return '';
+                        const done = sid === 'S001' && p.status === '已完成';
+                        return `<tr>
+                            <td style="font-family:monospace;font-size:12px">${sup.id}</td>
+                            <td style="font-weight:500">${sup.name}</td>
+                            <td><span class="tag tag-gray">${sup.level}</span></td>
+                            <td>${gradeTag(sup.grade)}</td>
+                            <td>${done ? '<span class="tag tag-green">已完成</span>' : p.completedCount > 0 && Math.random() > 0.5 ? '<span class="tag tag-blue">进行中</span>' : '<span class="tag tag-gray">待评估</span>'}</td>
+                        </tr>`;
+                    }).join('')}</tbody></table>
+                </div>
+                <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center">
+                    <span style="font-size:12px;color:var(--text-muted)">评估完成进度</span>
+                    <span style="font-size:13px;font-weight:700">${p.completedCount} / ${p.targetCount}</span>
+                </div>
+                ${progressBar(pct)}
+            </div>
+        `;
+
+        openModal('评估方案详情 — ' + p.name, html);
+        document.getElementById('modalConfirm').textContent = '关闭';
+        document.getElementById('modalConfirm').onclick = closeModal;
+        document.getElementById('modalCancel').style.display = 'none';
+        document.getElementById('modalPrev').style.display = 'none';
+        document.getElementById('modalNext').style.display = 'none';
+    }
+
+    // ===== Create Plan Wizard =====
+    let wizardStep = 0;
+    const wizardState = { name: '', scenario: '', purpose: '', responsible: '', startDate: '', endDate: '', scoringRule: 'RULE-LINEAR', gradeThresholds: { excellent: 90, good: 70, fair: 60 }, categories: [], categoryWeights: {}, selectedL1: [], targetSuppliers: [] };
+
+    function openCreatePlanWizard() {
+        wizardStep = 0;
+        Object.assign(wizardState, { name: '', scenario: '', purpose: '', responsible: '', startDate: '', endDate: '', scoringRule: 'RULE-LINEAR', gradeThresholds: { excellent: 90, good: 70, fair: 60 }, categories: [], categoryWeights: {}, selectedL1: [], targetSuppliers: [] });
+        renderWizardStep();
+        modalOverlay.classList.add('active');
+    }
+
+    function renderWizardStep() {
+        const steps = ['基本信息 & 目的', '评估指标', '评分规则', '评估对象', '确认提交'];
+        const stepperHTML = `<div class="wizard-stepper">${steps.map((s, i) =>
+            `${i > 0 ? `<div class="wizard-connector ${i <= wizardStep ? 'done' : ''}"></div>` : ''}` +
+            `<div class="wizard-step ${i === wizardStep ? 'active' : i < wizardStep ? 'done' : ''}"><span class="step-num">${i < wizardStep ? '✓' : i + 1}</span><span>${s}</span></div>`
+        ).join('')}</div>`;
+
+        document.getElementById('modalTitle').textContent = '创建评估方案';
+        const prevBtn = document.getElementById('modalPrev');
+        const nextBtn = document.getElementById('modalNext');
+        const confirmBtn = document.getElementById('modalConfirm');
+        const cancelBtn = document.getElementById('modalCancel');
+
+        cancelBtn.style.display = '';
+        prevBtn.style.display = wizardStep > 0 ? '' : 'none';
+        nextBtn.style.display = wizardStep < 4 ? '' : 'none';
+        confirmBtn.style.display = wizardStep === 4 ? '' : 'none';
+        confirmBtn.textContent = '创建方案';
+
+        prevBtn.onclick = () => { collectStepData(); wizardStep--; renderWizardStep(); };
+        nextBtn.onclick = () => { collectStepData(); wizardStep++; renderWizardStep(); };
+        confirmBtn.onclick = () => { alert('评估方案已创建（原型演示）'); closeModal(); renderPlans(); };
+        cancelBtn.onclick = closeModal;
+
+        let body = stepperHTML;
+
+        if (wizardStep === 0) {
+            body += `
+                <div class="form-group"><label class="required">方案名称</label><input type="text" id="wName" value="${wizardState.name}" placeholder="例：2026年度供应商绿色绩效综合评估"></div>
+                <div class="form-row">
+                    <div class="form-group"><label class="required">关联评估场景</label>
+                        <select id="wScenario"><option value="">请选择场景...</option>${ASSESSMENT_SCENARIOS.map(s => `<option value="${s.id}" ${s.id === wizardState.scenario ? 'selected' : ''}>${s.id} · ${s.name}</option>`).join('')}</select>
+                    </div>
+                    <div class="form-group"><label class="required">负责人</label><input type="text" id="wResponsible" value="${wizardState.responsible}" placeholder="评估负责人姓名"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label class="required">开始日期</label><input type="date" id="wStartDate" value="${wizardState.startDate}"></div>
+                    <div class="form-group"><label class="required">截止日期</label><input type="date" id="wEndDate" value="${wizardState.endDate}"></div>
+                </div>
+                <div class="form-group"><label class="required">评估目的</label><textarea id="wPurpose" rows="4" placeholder="详细描述本次评估的目的、背景及预期成果...">${wizardState.purpose}</textarea></div>
+            `;
+        } else if (wizardStep === 1) {
+            body += `
+                <div style="margin-bottom:16px">
+                    <label style="font-size:13px;font-weight:600;margin-bottom:8px;display:block">选择评估维度（指标类型）</label>
+                    <div class="checkbox-grid" id="wCatGrid">
+                        ${INDICATOR_TYPES.map(t => `<label class="checkbox-item ${wizardState.categories.includes(t.code) ? 'selected' : ''}">
+                            <input type="checkbox" value="${t.code}" ${wizardState.categories.includes(t.code) ? 'checked' : ''}>
+                            <span style="width:20px;height:20px;border-radius:4px;background:${t.color}18;color:${t.color};font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${t.code}</span>
+                            <span style="font-size:12px">${t.name}</span>
+                        </label>`).join('')}
+                    </div>
+                </div>
+                <div style="margin-bottom:16px" id="wWeightsSection">
+                    <label style="font-size:13px;font-weight:600;margin-bottom:8px;display:block">维度权重配置 <span style="font-size:11px;font-weight:400;color:var(--text-muted)">(合计应为100%)</span></label>
+                    <div id="wWeightRows">${renderWeightRows()}</div>
+                </div>
+                <div>
+                    <label style="font-size:13px;font-weight:600;margin-bottom:8px;display:block">选择一级指标</label>
+                    <div id="wL1Grid">${renderL1Selection()}</div>
+                </div>
+            `;
+        } else if (wizardStep === 2) {
+            body += `
+                <div class="form-group">
+                    <label class="required">评分规则</label>
+                    <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+                        ${SCORING_RULES.map(r => `<label class="checkbox-item ${wizardState.scoringRule === r.id ? 'selected' : ''}" style="flex-direction:column;align-items:flex-start;gap:2px;padding:12px 14px">
+                            <div style="display:flex;align-items:center;gap:8px;width:100%">
+                                <input type="radio" name="wRule" value="${r.id}" ${wizardState.scoringRule === r.id ? 'checked' : ''} style="accent-color:var(--primary);width:16px;height:16px">
+                                <span style="font-weight:600">${r.name}</span>
+                            </div>
+                            <div style="font-size:11px;color:var(--text-secondary);margin-left:24px">${r.desc}</div>
+                            <div style="font-size:10px;color:var(--text-muted);margin-left:24px;font-family:monospace">${r.formula}</div>
+                        </label>`).join('')}
+                    </div>
+                </div>
+                <div style="margin-top:16px">
+                    <label style="font-size:13px;font-weight:600;margin-bottom:8px;display:block">分级阈值</label>
+                    <div style="display:flex;gap:12px;flex-wrap:wrap">
+                        <div class="form-group" style="flex:1;min-width:120px"><label>优秀 ≥</label><input type="number" id="wThExcellent" value="${wizardState.gradeThresholds.excellent}" min="0" max="100"></div>
+                        <div class="form-group" style="flex:1;min-width:120px"><label>良好 ≥</label><input type="number" id="wThGood" value="${wizardState.gradeThresholds.good}" min="0" max="100"></div>
+                        <div class="form-group" style="flex:1;min-width:120px"><label>一般 ≥</label><input type="number" id="wThFair" value="${wizardState.gradeThresholds.fair}" min="0" max="100"></div>
+                    </div>
+                </div>
+            `;
+        } else if (wizardStep === 3) {
+            body += `
+                <div class="form-group">
+                    <label class="required">选择评估对象（供应商）</label>
+                    <div style="display:flex;gap:8px;margin-bottom:10px">
+                        <button class="btn btn-sm btn-outline" id="wSelAll">全选</button>
+                        <button class="btn btn-sm btn-secondary" id="wSelNone">清空</button>
+                    </div>
+                    <div class="checkbox-grid" id="wSupplierGrid">
+                        ${SUPPLIERS.filter(s => s.status === '合作中').map(s => `<label class="checkbox-item ${wizardState.targetSuppliers.includes(s.id) ? 'selected' : ''}">
+                            <input type="checkbox" value="${s.id}" ${wizardState.targetSuppliers.includes(s.id) ? 'checked' : ''}>
+                            <div style="display:flex;flex-direction:column;gap:1px">
+                                <span style="font-size:12px;font-weight:500">${s.name.substring(0, 10)}</span>
+                                <span style="font-size:10px;color:var(--text-muted)">${s.id} · ${s.level} · ${gradeTag(s.grade)}</span>
+                            </div>
+                        </label>`).join('')}
+                    </div>
+                    <div style="margin-top:8px;font-size:12px;color:var(--text-muted)">已选 <strong id="wSupCount">${wizardState.targetSuppliers.length}</strong> 家供应商</div>
+                </div>
+            `;
+        } else if (wizardStep === 4) {
+            const rule = SCORING_RULES.find(r => r.id === wizardState.scoringRule);
+            body += `
+                <div style="padding:16px;background:var(--primary-light);border-radius:var(--radius);margin-bottom:16px;text-align:center">
+                    <div style="font-size:13px;font-weight:600;color:var(--primary-dark)">请确认以下评估方案信息</div>
+                </div>
+                <div class="detail-grid" style="margin-bottom:16px">
+                    <div class="detail-item"><label>方案名称</label><span style="font-weight:600">${wizardState.name || '（未填写）'}</span></div>
+                    <div class="detail-item"><label>关联场景</label><span>${wizardState.scenario || '（未选择）'}</span></div>
+                    <div class="detail-item"><label>负责人</label><span>${wizardState.responsible || '（未填写）'}</span></div>
+                    <div class="detail-item"><label>周期</label><span>${wizardState.startDate || '?'} ~ ${wizardState.endDate || '?'}</span></div>
+                </div>
+                <div style="margin-bottom:12px"><label style="font-size:11px;font-weight:600;color:var(--text-muted)">评估目的</label><p style="font-size:12px;margin-top:4px;color:var(--text-secondary)">${wizardState.purpose || '（未填写）'}</p></div>
+                <div style="margin-bottom:12px"><label style="font-size:11px;font-weight:600;color:var(--text-muted)">评估维度 (${wizardState.categories.length})</label>
+                    <div class="chip-list" style="margin-top:4px">${wizardState.categories.map(c => `<span class="chip chip-primary">${c}. ${INDICATOR_TYPES.find(x => x.code === c)?.name || c} (${wizardState.categoryWeights[c] || 0}%)</span>`).join('')}</div></div>
+                <div style="margin-bottom:12px"><label style="font-size:11px;font-weight:600;color:var(--text-muted)">一级指标 (${wizardState.selectedL1.length})</label>
+                    <div class="chip-list" style="margin-top:4px">${wizardState.selectedL1.map(code => `<span class="chip">${code}</span>`).join('')}</div></div>
+                <div style="margin-bottom:12px"><label style="font-size:11px;font-weight:600;color:var(--text-muted)">评分规则</label><span style="font-size:12px;margin-left:4px">${rule?.name || '-'}</span></div>
+                <div style="margin-bottom:12px"><label style="font-size:11px;font-weight:600;color:var(--text-muted)">分级阈值</label><span style="font-size:12px;margin-left:4px">优秀≥${wizardState.gradeThresholds.excellent}　良好≥${wizardState.gradeThresholds.good}　一般≥${wizardState.gradeThresholds.fair}</span></div>
+                <div><label style="font-size:11px;font-weight:600;color:var(--text-muted)">评估对象 (${wizardState.targetSuppliers.length} 家)</label>
+                    <div class="chip-list" style="margin-top:4px">${wizardState.targetSuppliers.map(sid => { const s = SUPPLIERS.find(x => x.id === sid); return `<span class="chip">${s?.name?.substring(0, 8) || sid}</span>`; }).join('')}</div></div>
+            `;
+        }
+
+        document.getElementById('modalBody').innerHTML = body;
+
+        if (wizardStep === 1) {
+            bindCatCheckboxes();
+            bindL1Checkboxes();
+        }
+        if (wizardStep === 2) bindRuleRadios();
+        if (wizardStep === 3) bindSupplierCheckboxes();
+    }
+
+    function renderWeightRows() {
+        if (!wizardState.categories.length) return '<p style="font-size:12px;color:var(--text-muted)">请先选择评估维度</p>';
+        return wizardState.categories.map(c => {
+            const t = INDICATOR_TYPES.find(x => x.code === c);
+            const w = wizardState.categoryWeights[c] || 0;
+            return `<div class="weight-row">
+                <div class="weight-label"><span style="color:${getTypeColor(c)};font-weight:700">${c}</span> ${t?.name?.substring(0, 8) || c}</div>
+                <input type="range" min="0" max="100" value="${w}" data-cat="${c}" class="wWeightSlider">
+                <div class="weight-value">${w}%</div>
+            </div>`;
+        }).join('');
+    }
+
+    function renderL1Selection() {
+        if (!wizardState.categories.length) return '<p style="font-size:12px;color:var(--text-muted)">请先选择评估维度</p>';
+        return wizardState.categories.map(c => {
+            const t = INDICATOR_TYPES.find(x => x.code === c);
+            const l1s = LEVEL1_INDICATORS.filter(i => i.type === c);
+            return `<div style="margin-bottom:12px"><div style="font-size:12px;font-weight:600;color:${getTypeColor(c)};margin-bottom:6px">${c}. ${t?.name || ''}</div>
+                <div class="checkbox-grid">${l1s.map(l => `<label class="checkbox-item ${wizardState.selectedL1.includes(l.code) ? 'selected' : ''}">
+                    <input type="checkbox" value="${l.code}" class="wL1Check" ${wizardState.selectedL1.includes(l.code) ? 'checked' : ''}>
+                    <span style="font-size:12px"><strong>${l.code}</strong> ${l.name.substring(0, 12)}</span>
+                </label>`).join('')}</div></div>`;
+        }).join('');
+    }
+
+    function bindCatCheckboxes() {
+        document.querySelectorAll('#wCatGrid input[type="checkbox"]').forEach(cb => {
+            cb.addEventListener('change', () => {
+                cb.closest('.checkbox-item').classList.toggle('selected', cb.checked);
+                collectCatSelections();
+                document.getElementById('wWeightRows').innerHTML = renderWeightRows();
+                document.getElementById('wL1Grid').innerHTML = renderL1Selection();
+                bindWeightSliders();
+                bindL1Checkboxes();
+            });
+        });
+        bindWeightSliders();
+    }
+
+    function collectCatSelections() {
+        wizardState.categories = [...document.querySelectorAll('#wCatGrid input:checked')].map(cb => cb.value);
+        wizardState.categories.forEach(c => { if (!wizardState.categoryWeights[c]) wizardState.categoryWeights[c] = Math.round(100 / wizardState.categories.length); });
+    }
+
+    function bindWeightSliders() {
+        document.querySelectorAll('.wWeightSlider').forEach(slider => {
+            slider.addEventListener('input', () => {
+                const c = slider.dataset.cat;
+                wizardState.categoryWeights[c] = parseInt(slider.value);
+                slider.nextElementSibling.textContent = slider.value + '%';
+            });
+        });
+    }
+
+    function bindL1Checkboxes() {
+        document.querySelectorAll('.wL1Check').forEach(cb => {
+            cb.addEventListener('change', () => {
+                cb.closest('.checkbox-item').classList.toggle('selected', cb.checked);
+            });
+        });
+    }
+
+    function bindRuleRadios() {
+        document.querySelectorAll('input[name="wRule"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                document.querySelectorAll('input[name="wRule"]').forEach(r => r.closest('.checkbox-item').classList.remove('selected'));
+                radio.closest('.checkbox-item').classList.add('selected');
+            });
+        });
+    }
+
+    function bindSupplierCheckboxes() {
+        const grid = document.getElementById('wSupplierGrid');
+        const countEl = document.getElementById('wSupCount');
+        grid.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+            cb.addEventListener('change', () => {
+                cb.closest('.checkbox-item').classList.toggle('selected', cb.checked);
+                countEl.textContent = grid.querySelectorAll('input:checked').length;
+            });
+        });
+        document.getElementById('wSelAll').addEventListener('click', () => {
+            grid.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.checked = true; cb.closest('.checkbox-item').classList.add('selected'); });
+            countEl.textContent = grid.querySelectorAll('input:checked').length;
+        });
+        document.getElementById('wSelNone').addEventListener('click', () => {
+            grid.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.checked = false; cb.closest('.checkbox-item').classList.remove('selected'); });
+            countEl.textContent = 0;
+        });
+    }
+
+    function collectStepData() {
+        if (wizardStep === 0) {
+            wizardState.name = document.getElementById('wName')?.value || '';
+            wizardState.scenario = document.getElementById('wScenario')?.value || '';
+            wizardState.responsible = document.getElementById('wResponsible')?.value || '';
+            wizardState.startDate = document.getElementById('wStartDate')?.value || '';
+            wizardState.endDate = document.getElementById('wEndDate')?.value || '';
+            wizardState.purpose = document.getElementById('wPurpose')?.value || '';
+        } else if (wizardStep === 1) {
+            wizardState.categories = [...document.querySelectorAll('#wCatGrid input:checked')].map(cb => cb.value);
+            document.querySelectorAll('.wWeightSlider').forEach(s => { wizardState.categoryWeights[s.dataset.cat] = parseInt(s.value); });
+            wizardState.selectedL1 = [...document.querySelectorAll('.wL1Check:checked')].map(cb => cb.value);
+        } else if (wizardStep === 2) {
+            const checked = document.querySelector('input[name="wRule"]:checked');
+            if (checked) wizardState.scoringRule = checked.value;
+            wizardState.gradeThresholds.excellent = parseInt(document.getElementById('wThExcellent')?.value) || 90;
+            wizardState.gradeThresholds.good = parseInt(document.getElementById('wThGood')?.value) || 70;
+            wizardState.gradeThresholds.fair = parseInt(document.getElementById('wThFair')?.value) || 60;
+        } else if (wizardStep === 3) {
+            wizardState.targetSuppliers = [...document.querySelectorAll('#wSupplierGrid input:checked')].map(cb => cb.value);
+        }
     }
 
     // ===== Suppliers =====
