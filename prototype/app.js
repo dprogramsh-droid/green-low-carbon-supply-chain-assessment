@@ -13,6 +13,7 @@
         'indicator-tree': '三级指标体系',
         scenarios: '评估场景',
         plans: '评估方案',
+        scoring: '评估打分',
         suppliers: '供应商列表',
         'supplier-detail': 'S001 评估详情',
     };
@@ -53,7 +54,7 @@
     function closeModal() { modalOverlay.classList.remove('active'); }
 
     function renderPage(page) {
-        const r = { dashboard: renderDashboard, 'indicator-types': renderIndicatorTypes, 'indicator-tree': renderIndicatorTree, scenarios: renderScenarios, plans: renderPlans, suppliers: renderSuppliers, 'supplier-detail': renderSupplierDetail };
+        const r = { dashboard: renderDashboard, 'indicator-types': renderIndicatorTypes, 'indicator-tree': renderIndicatorTree, scenarios: renderScenarios, plans: renderPlans, scoring: renderScoring, suppliers: renderSuppliers, 'supplier-detail': renderSupplierDetail };
         if (r[page]) r[page]();
     }
 
@@ -511,17 +512,19 @@
             <div class="plan-section">
                 <div class="plan-section-title"><span class="section-icon" style="background:var(--primary-light);color:var(--primary-dark)"><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg></span>评估对象 (${p.targetSuppliers.length} 家供应商)</div>
                 <div class="table-wrapper">
-                    <table class="data-table"><thead><tr><th>编号</th><th>供应商名称</th><th>类型</th><th>评级</th><th>进度</th></tr></thead>
-                    <tbody>${p.targetSuppliers.map(sid => {
+                    <table class="data-table"><thead><tr><th>编号</th><th>供应商名称</th><th>类型</th><th>评级</th><th>进度</th><th>操作</th></tr></thead>
+                    <tbody>${p.targetSuppliers.map((sid, idx) => {
                         const sup = SUPPLIERS.find(x => x.id === sid);
                         if (!sup) return '';
                         const done = sid === 'S001' && p.status === '已完成';
+                        const inProgress = !done && p.completedCount > 0 && idx < p.completedCount;
                         return `<tr>
                             <td style="font-family:monospace;font-size:12px">${sup.id}</td>
                             <td style="font-weight:500">${sup.name}</td>
                             <td><span class="tag tag-gray">${sup.level}</span></td>
                             <td>${gradeTag(sup.grade)}</td>
-                            <td>${done ? '<span class="tag tag-green">已完成</span>' : p.completedCount > 0 && Math.random() > 0.5 ? '<span class="tag tag-blue">进行中</span>' : '<span class="tag tag-gray">待评估</span>'}</td>
+                            <td>${done ? '<span class="tag tag-green">已完成</span>' : inProgress ? '<span class="tag tag-blue">进行中</span>' : '<span class="tag tag-gray">待评估</span>'}</td>
+                            <td>${sup.id === 'S001' ? `<a class="action-link" onclick="window._startScoring('${p.id}','${sup.id}');document.getElementById('modalOverlay').classList.remove('active')">打分</a>` : '<span style="font-size:11px;color:var(--text-muted)">暂无数据</span>'}</td>
                         </tr>`;
                     }).join('')}</tbody></table>
                 </div>
@@ -804,6 +807,421 @@
         } else if (wizardStep === 3) {
             wizardState.targetSuppliers = [...document.querySelectorAll('#wSupplierGrid input:checked')].map(cb => cb.value);
         }
+    }
+
+    // ===== Scoring Page =====
+    let scoringState = {
+        planId: 'PLAN-004',
+        supplierId: 'S001',
+        activeDim: 'A',
+        values: {},
+        comments: {},
+    };
+
+    function initScoringValues() {
+        scoringState.values = {};
+        scoringState.comments = {};
+        S001_SCORES.forEach(s => {
+            scoringState.values[s.l3code] = s.actual;
+            scoringState.comments[s.l3code] = '';
+        });
+    }
+
+    function calcAutoScore(actual, benchmark, ruleId) {
+        if (actual === '' || actual === undefined || actual === null) return null;
+        const a = typeof actual === 'string' ? (actual === '是' ? 1 : 0) : parseFloat(actual);
+        const b = typeof benchmark === 'string' ? (benchmark === '是' ? 1 : 0) : parseFloat(benchmark);
+        if (isNaN(a) || isNaN(b) || b === 0) {
+            if (typeof actual === 'string' && actual === '是') return 10;
+            return null;
+        }
+        if (ruleId === 'RULE-INVERSE') return Math.max(0, +(10 - (a / b) * 10).toFixed(2));
+        return Math.min(10, +((a / b) * 10).toFixed(2));
+    }
+
+    function getScoringPlan() {
+        return ASSESSMENT_PLANS.find(p => p.id === scoringState.planId);
+    }
+
+    function getScoringDimScores() {
+        const plan = getScoringPlan();
+        if (!plan) return {};
+        const result = {};
+        plan.categories.forEach(cat => {
+            const l1codes = plan.selectedL1.filter(c => c.startsWith(cat));
+            const scores = [];
+            l1codes.forEach(l1c => {
+                const l2s = LEVEL2_INDICATORS.filter(i => i.l1 === l1c);
+                l2s.forEach(l2 => {
+                    const l3s = S001_SCORES.filter(s => s.l2 === l2.code);
+                    l3s.forEach(l3 => {
+                        const val = scoringState.values[l3.l3code];
+                        const sc = calcAutoScore(val, l3.benchmark, plan.scoringRule);
+                        if (sc !== null) scores.push(sc);
+                    });
+                });
+            });
+            result[cat] = scores.length ? +(scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(2) : null;
+        });
+        return result;
+    }
+
+    function getScoringTotal() {
+        const plan = getScoringPlan();
+        if (!plan) return 0;
+        const dimScores = getScoringDimScores();
+        let totalWeight = 0, weightedSum = 0;
+        plan.categories.forEach(cat => {
+            const w = plan.categoryWeights[cat] || 0;
+            const s = dimScores[cat];
+            if (s !== null && s !== undefined) {
+                weightedSum += s * w;
+                totalWeight += w;
+            }
+        });
+        return totalWeight > 0 ? +(weightedSum / totalWeight).toFixed(2) : 0;
+    }
+
+    function getScoringGrade(score, plan) {
+        if (!plan) return { label: '-', cls: '' };
+        const t = plan.gradeThresholds;
+        const s100 = score * 10;
+        if (s100 >= t.excellent) return { label: '优秀', cls: 'tag-green' };
+        if (s100 >= t.good) return { label: '良好', cls: 'tag-blue' };
+        if (s100 >= t.fair) return { label: '一般', cls: 'tag-yellow' };
+        return { label: '需改进', cls: 'tag-red' };
+    }
+
+    function getScoringProgress() {
+        let filled = 0, total = 0;
+        const plan = getScoringPlan();
+        if (!plan) return { filled: 0, total: 0, pct: 0 };
+        plan.categories.forEach(cat => {
+            plan.selectedL1.filter(c => c.startsWith(cat)).forEach(l1c => {
+                LEVEL2_INDICATORS.filter(i => i.l1 === l1c).forEach(l2 => {
+                    S001_SCORES.filter(s => s.l2 === l2.code).forEach(l3 => {
+                        total++;
+                        const v = scoringState.values[l3.l3code];
+                        if (v !== '' && v !== undefined && v !== null) filled++;
+                    });
+                });
+            });
+        });
+        return { filled, total, pct: total > 0 ? Math.round(filled / total * 100) : 0 };
+    }
+
+    function renderScoring() {
+        initScoringValues();
+        scoringState.activeDim = getScoringPlan()?.categories[0] || 'A';
+        renderScoringPage();
+    }
+
+    window._startScoring = function (planId, supplierId) {
+        scoringState.planId = planId;
+        scoringState.supplierId = supplierId || 'S001';
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.querySelector('[data-page="scoring"]')?.classList.add('active');
+        breadcrumbTitle.textContent = '评估打分';
+        renderScoring();
+    };
+
+    function renderScoringPage() {
+        const plan = getScoringPlan();
+        const supplier = SUPPLIERS.find(s => s.id === scoringState.supplierId);
+        if (!plan || !supplier) {
+            pageContent.innerHTML = '<div class="empty-state"><h3>请先选择评估方案和供应商</h3></div>';
+            return;
+        }
+        const rule = SCORING_RULES.find(r => r.id === plan.scoringRule);
+        const progress = getScoringProgress();
+        const total = getScoringTotal();
+        const grade = getScoringGrade(total, plan);
+        const dimScores = getScoringDimScores();
+
+        const progressRingSvg = `<svg class="scoring-progress-ring" viewBox="0 0 60 60">
+            <circle cx="30" cy="30" r="26" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="4"/>
+            <circle cx="30" cy="30" r="26" fill="none" stroke="#10B981" stroke-width="4" stroke-linecap="round"
+                stroke-dasharray="${2 * Math.PI * 26}" stroke-dashoffset="${2 * Math.PI * 26 * (1 - progress.pct / 100)}"
+                transform="rotate(-90 30 30)"/>
+            <text x="30" y="33" text-anchor="middle" fill="#fff" font-size="14" font-weight="700">${progress.pct}%</text>
+        </svg>`;
+
+        pageContent.innerHTML = `
+            <div class="page-header" style="margin-bottom:0">
+                <div><h1>评估打分</h1><p>逐项录入指标实际值，系统自动计算得分，实时汇总评估结果</p></div>
+                <div class="btn-group">
+                    <button class="btn btn-secondary btn-sm" id="btnSaveDraft">保存草稿</button>
+                    <button class="btn btn-primary btn-sm" id="btnSubmitScore">提交评估</button>
+                </div>
+            </div>
+
+            <div class="scoring-header">
+                <div class="sh-plan">
+                    <h2>${plan.name}</h2>
+                    <p>${plan.id} · ${rule?.name || ''} · ${plan.startDate} ~ ${plan.endDate}</p>
+                </div>
+                <div class="sh-supplier">
+                    <div class="sup-avatar">${supplier.name[0]}</div>
+                    <div class="sup-info">
+                        <span class="sup-name">${supplier.name}</span>
+                        <span class="sup-meta">${supplier.id} · ${supplier.level} · ${supplier.industry}</span>
+                    </div>
+                </div>
+                ${progressRingSvg}
+            </div>
+
+            <div class="scoring-layout">
+                <div class="scoring-main">
+                    <div class="dim-nav" id="dimNav">
+                        ${plan.categories.map(cat => {
+                            const t = INDICATOR_TYPES.find(x => x.code === cat);
+                            const l1codes = plan.selectedL1.filter(c => c.startsWith(cat));
+                            let cnt = 0;
+                            l1codes.forEach(l1c => {
+                                LEVEL2_INDICATORS.filter(i => i.l1 === l1c).forEach(l2 => {
+                                    cnt += S001_SCORES.filter(s => s.l2 === l2.code).length;
+                                });
+                            });
+                            return `<button class="dim-nav-item ${cat === scoringState.activeDim ? 'active' : ''}" data-dim="${cat}">
+                                <span style="width:6px;height:6px;border-radius:50%;background:${getTypeColor(cat)}"></span>
+                                ${cat}. ${t?.name?.substring(0, 6) || cat}
+                                <span class="dim-count">${cnt}</span>
+                            </button>`;
+                        }).join('')}
+                    </div>
+
+                    <div id="scoringForms">${renderScoringForms()}</div>
+                </div>
+
+                <div class="scoring-sidebar">
+                    <div class="card live-summary" id="liveSummary">
+                        ${renderLiveSummary()}
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.querySelectorAll('#dimNav .dim-nav-item').forEach(btn => {
+            btn.addEventListener('click', () => {
+                scoringState.activeDim = btn.dataset.dim;
+                document.querySelectorAll('#dimNav .dim-nav-item').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById('scoringForms').innerHTML = renderScoringForms();
+                bindScoringInputs();
+            });
+        });
+
+        bindScoringInputs();
+
+        document.getElementById('btnSubmitScore').addEventListener('click', () => {
+            const t = getScoringTotal();
+            const g = getScoringGrade(t, plan);
+            openModal('提交评估确认', `
+                <div style="text-align:center;padding:20px 0">
+                    <div style="font-size:48px;font-weight:800;color:${scoreColor(t)};margin-bottom:4px">${t}</div>
+                    <div style="font-size:13px;color:var(--text-muted);margin-bottom:12px">加权综合得分 (满分10)</div>
+                    <span class="tag ${g.cls}" style="font-size:14px;padding:6px 20px">${g.label}</span>
+                    <div style="margin-top:20px;text-align:left">
+                        <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">各维度得分：</div>
+                        ${plan.categories.map(cat => {
+                            const s = dimScores[cat];
+                            const t2 = INDICATOR_TYPES.find(x => x.code === cat);
+                            return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+                                <span style="width:8px;height:8px;border-radius:50%;background:${getTypeColor(cat)}"></span>
+                                <span style="flex:1;font-size:12px">${cat}. ${t2?.name || ''}</span>
+                                <span style="font-weight:700;font-size:13px;color:${s ? scoreColor(s) : 'var(--text-muted)'}">${s !== null ? s : '-'}</span>
+                                <span style="font-size:10px;color:var(--text-muted);width:28px;text-align:right">${plan.categoryWeights[cat]}%</span>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                    <p style="margin-top:16px;font-size:12px;color:var(--text-secondary)">确认提交后，评估结果将归档并更新供应商评级。</p>
+                </div>
+            `);
+            document.getElementById('modalConfirm').textContent = '确认提交';
+            document.getElementById('modalConfirm').onclick = () => { alert('评估已提交（原型演示）'); closeModal(); };
+            document.getElementById('modalCancel').style.display = '';
+            document.getElementById('modalPrev').style.display = 'none';
+            document.getElementById('modalNext').style.display = 'none';
+        });
+
+        document.getElementById('btnSaveDraft').addEventListener('click', () => { alert('草稿已保存（原型演示）'); });
+    }
+
+    function renderScoringForms() {
+        const plan = getScoringPlan();
+        if (!plan) return '';
+        const cat = scoringState.activeDim;
+        const color = getTypeColor(cat);
+        const l1codes = plan.selectedL1.filter(c => c.startsWith(cat));
+
+        let html = '';
+        l1codes.forEach(l1c => {
+            const l1 = LEVEL1_INDICATORS.find(i => i.code === l1c);
+            if (!l1) return;
+            const l2s = LEVEL2_INDICATORS.filter(i => i.l1 === l1c);
+            const relevantL2s = l2s.filter(l2 => S001_SCORES.some(s => s.l2 === l2.code));
+            if (!relevantL2s.length) return;
+
+            html += `<div class="card" style="margin-bottom:16px;border-left:4px solid ${color};padding:0;overflow:hidden">
+                <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:${color}06">
+                    <span style="font-weight:700;color:${color};font-size:14px">${l1.code}</span>
+                    <span style="font-weight:600;font-size:14px">${l1.name}</span>
+                </div>`;
+
+            relevantL2s.forEach(l2 => {
+                const l3items = S001_SCORES.filter(s => s.l2 === l2.code);
+                if (!l3items.length) return;
+
+                const l2Scores = l3items.map(l3 => {
+                    const v = scoringState.values[l3.l3code];
+                    return calcAutoScore(v, l3.benchmark, plan.scoringRule);
+                }).filter(s => s !== null);
+                const l2Avg = l2Scores.length ? +(l2Scores.reduce((a, b) => a + b, 0) / l2Scores.length).toFixed(1) : '-';
+
+                html += `<div class="l2-group-header" data-l2="${l2.code}">
+                    <span class="l2-code" style="color:${color}">${l2.code}</span>
+                    <span class="l2-name">${l2.name}</span>
+                    <span class="l2-avg" style="color:${l2Avg === '-' ? 'var(--text-muted)' : scoreColor(l2Avg)}">${l2Avg}</span>
+                    <span class="l2-toggle">▼</span>
+                </div>
+                <div class="l2-group-body" data-l2-body="${l2.code}">
+                    <div class="score-header-row">
+                        <span>指标</span><span style="text-align:center">实际值</span><span style="text-align:center">基准值</span><span style="text-align:center">得分</span><span>备注</span>
+                    </div>
+                    ${l3items.map(l3 => {
+                        const val = scoringState.values[l3.l3code];
+                        const autoScore = calcAutoScore(val, l3.benchmark, plan.scoringRule);
+                        const comment = scoringState.comments[l3.l3code] || '';
+                        return `<div class="score-input-row">
+                            <div class="indicator-info">
+                                <span class="indicator-code">${l3.l3code}</span>
+                                <span class="indicator-name" title="${l3.name}">${l3.name}</span>
+                            </div>
+                            <div><input type="${typeof l3.benchmark === 'string' ? 'text' : 'number'}" class="score-actual" data-code="${l3.l3code}" value="${val}" step="any"></div>
+                            <div style="text-align:center;font-size:12px;color:var(--text-muted);padding:6px 0">${l3.benchmark}</div>
+                            <div class="auto-score" style="color:${autoScore !== null ? scoreColor(autoScore) : 'var(--text-muted)'}">${autoScore !== null ? autoScore : '-'}</div>
+                            <div class="comment-input"><input type="text" class="score-comment" data-code="${l3.l3code}" value="${comment}" placeholder="备注..."></div>
+                        </div>`;
+                    }).join('')}
+                </div>`;
+            });
+
+            html += '</div>';
+        });
+
+        if (!html) {
+            html = `<div class="card"><div class="empty-state"><h3>该维度暂无需要打分的三级指标</h3><p>请在评估方案中配置相应的一级指标</p></div></div>`;
+        }
+
+        return html;
+    }
+
+    function renderLiveSummary() {
+        const plan = getScoringPlan();
+        if (!plan) return '';
+        const total = getScoringTotal();
+        const grade = getScoringGrade(total, plan);
+        const dimScores = getScoringDimScores();
+        const progress = getScoringProgress();
+
+        return `
+            <div class="ls-total">
+                <div class="ls-score">${total}</div>
+                <div class="ls-label">加权综合得分 (满分10)</div>
+            </div>
+            <div class="ls-grade ${grade.cls}" style="background:${grade.cls === 'tag-green' ? 'var(--primary-light)' : grade.cls === 'tag-blue' ? 'var(--secondary-light)' : grade.cls === 'tag-yellow' ? 'var(--warning-light)' : 'var(--danger-light)'}">${grade.label}</div>
+
+            <div style="margin-bottom:12px">
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                    <span style="font-size:11px;color:var(--text-muted)">打分进度</span>
+                    <span style="font-size:11px;font-weight:600">${progress.filled}/${progress.total}</span>
+                </div>
+                ${progressBar(progress.pct)}
+            </div>
+
+            <div style="font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:8px;padding-top:8px;border-top:1px solid var(--border)">维度得分</div>
+            ${plan.categories.map(cat => {
+                const t = INDICATOR_TYPES.find(x => x.code === cat);
+                const s = dimScores[cat];
+                const w = plan.categoryWeights[cat] || 0;
+                return `<div class="ls-dim-row">
+                    <span class="ls-dim-dot" style="background:${getTypeColor(cat)}"></span>
+                    <span class="ls-dim-name">${cat}. ${t?.name?.substring(0, 6) || ''}</span>
+                    <span class="ls-dim-score" style="color:${s !== null ? scoreColor(s) : 'var(--text-muted)'}">${s !== null ? s : '-'}</span>
+                    <span class="ls-dim-pct">${w}%</span>
+                </div>`;
+            }).join('')}
+
+            <div style="margin-top:14px;padding-top:10px;border-top:1px solid var(--border);font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:6px">评分规则</div>
+            <div style="font-size:11px;color:var(--text-secondary)">${SCORING_RULES.find(r => r.id === plan.scoringRule)?.name || ''}</div>
+            <div style="font-size:10px;color:var(--text-muted);font-family:monospace;margin-top:2px">${SCORING_RULES.find(r => r.id === plan.scoringRule)?.formula || ''}</div>
+
+            <div style="margin-top:14px;padding-top:10px;border-top:1px solid var(--border)">
+                <div style="font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:6px">分级阈值</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+                    <div style="font-size:10px;color:var(--primary);background:var(--primary-light);padding:3px 6px;border-radius:4px;text-align:center">优秀 ≥${plan.gradeThresholds.excellent}</div>
+                    <div style="font-size:10px;color:var(--secondary);background:var(--secondary-light);padding:3px 6px;border-radius:4px;text-align:center">良好 ≥${plan.gradeThresholds.good}</div>
+                    <div style="font-size:10px;color:#92400E;background:var(--warning-light);padding:3px 6px;border-radius:4px;text-align:center">一般 ≥${plan.gradeThresholds.fair}</div>
+                    <div style="font-size:10px;color:var(--danger);background:var(--danger-light);padding:3px 6px;border-radius:4px;text-align:center">需改进 &lt;${plan.gradeThresholds.fair}</div>
+                </div>
+            </div>
+        `;
+    }
+
+    function bindScoringInputs() {
+        const plan = getScoringPlan();
+        document.querySelectorAll('.score-actual').forEach(input => {
+            input.addEventListener('input', () => {
+                const code = input.dataset.code;
+                const val = input.type === 'number' ? (input.value === '' ? '' : parseFloat(input.value)) : input.value;
+                scoringState.values[code] = val;
+
+                const l3 = S001_SCORES.find(s => s.l3code === code);
+                if (l3) {
+                    const autoScore = calcAutoScore(val, l3.benchmark, plan?.scoringRule);
+                    const scoreEl = input.closest('.score-input-row').querySelector('.auto-score');
+                    scoreEl.textContent = autoScore !== null ? autoScore : '-';
+                    scoreEl.style.color = autoScore !== null ? scoreColor(autoScore) : 'var(--text-muted)';
+                }
+
+                updateL2Headers();
+                document.getElementById('liveSummary').innerHTML = renderLiveSummary();
+            });
+        });
+
+        document.querySelectorAll('.score-comment').forEach(input => {
+            input.addEventListener('input', () => {
+                scoringState.comments[input.dataset.code] = input.value;
+            });
+        });
+
+        document.querySelectorAll('.l2-group-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const l2code = header.dataset.l2;
+                const body = document.querySelector(`[data-l2-body="${l2code}"]`);
+                const toggle = header.querySelector('.l2-toggle');
+                if (body.style.display === 'none') {
+                    body.style.display = '';
+                    toggle.classList.remove('collapsed');
+                } else {
+                    body.style.display = 'none';
+                    toggle.classList.add('collapsed');
+                }
+            });
+        });
+    }
+
+    function updateL2Headers() {
+        const plan = getScoringPlan();
+        document.querySelectorAll('.l2-group-header').forEach(header => {
+            const l2code = header.dataset.l2;
+            const l3items = S001_SCORES.filter(s => s.l2 === l2code);
+            const scores = l3items.map(l3 => calcAutoScore(scoringState.values[l3.l3code], l3.benchmark, plan?.scoringRule)).filter(s => s !== null);
+            const avg = scores.length ? +(scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1) : '-';
+            const avgEl = header.querySelector('.l2-avg');
+            avgEl.textContent = avg;
+            avgEl.style.color = avg === '-' ? 'var(--text-muted)' : scoreColor(avg);
+        });
     }
 
     // ===== Suppliers =====
