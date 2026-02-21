@@ -16,7 +16,10 @@
         scoring: '评估打分',
         suppliers: '供应商列表',
         'supplier-detail': 'S001 评估详情',
-        'base-data': '基础数据管理',
+        'base-data': '基础数据 · 综合管理',
+        'bd-object-types': '基础数据 · 评估对象类型',
+        'bd-industries': '基础数据 · 行业',
+        'bd-indicator-types': '基础数据 · 指标类型',
     };
 
     function init() {
@@ -55,7 +58,7 @@
     function closeModal() { modalOverlay.classList.remove('active'); }
 
     function renderPage(page) {
-        const r = { dashboard: renderDashboard, 'indicator-types': renderIndicatorTypes, 'indicator-tree': renderIndicatorTree, scenarios: renderScenarios, plans: renderPlans, scoring: renderScoring, suppliers: renderSuppliers, 'supplier-detail': renderSupplierDetail, 'base-data': renderBaseData };
+        const r = { dashboard: renderDashboard, 'indicator-types': renderIndicatorTypes, 'indicator-tree': renderIndicatorTree, scenarios: renderScenarios, plans: renderPlans, scoring: renderScoring, suppliers: renderSuppliers, 'supplier-detail': renderSupplierDetail, 'base-data': renderBaseData, 'bd-object-types': renderBdObjectTypes, 'bd-industries': renderBdIndustries, 'bd-indicator-types': renderBdIndicatorTypesPage };
         if (r[page]) r[page]();
     }
 
@@ -1407,10 +1410,12 @@
     }
 
     // ===== Base Data Management =====
-    let bdTab = 'indicator-types';
+    let bdTab = 'object-types';
 
     function renderBaseData() {
         const tabs = [
+            { key: 'object-types', label: '评估对象类型', count: OBJECT_TYPES.length },
+            { key: 'industries', label: '行业', count: INDUSTRIES.length },
             { key: 'indicator-types', label: '指标类型', count: INDICATOR_TYPES.length },
             { key: 'level1', label: '一级指标', count: LEVEL1_INDICATORS.length },
             { key: 'level2', label: '二级指标', count: LEVEL2_INDICATORS.length },
@@ -1443,6 +1448,8 @@
 
     function renderBdTab() {
         const renderers = {
+            'object-types': renderBdObjTypesTab,
+            'industries': renderBdIndustriesTab,
             'indicator-types': renderBdIndicatorTypes,
             'level1': renderBdLevel1,
             'level2': renderBdLevel2,
@@ -1451,6 +1458,51 @@
             'suppliers-bd': renderBdSuppliers,
         };
         return (renderers[bdTab] || (() => ''))();
+    }
+
+    function renderBdObjTypesTab() {
+        return `
+            <div class="card" style="margin-bottom:12px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+                <div><span style="font-size:14px;font-weight:600">评估对象类型</span><span style="font-size:12px;color:var(--text-muted);margin-left:8px">供应商分类定义，被评估场景和供应商管理引用</span></div>
+                <button class="btn btn-primary btn-sm bd-add" data-type="object-type">+ 新增类型</button>
+            </div>
+            <div class="card" style="padding:0"><div class="table-wrapper"><table class="data-table">
+                <thead><tr><th style="width:70px">编号</th><th style="width:50px">编码</th><th>类型名称</th><th>说明</th><th>供应商数</th><th>关联场景</th><th style="width:80px">操作</th></tr></thead>
+                <tbody>${OBJECT_TYPES.map(t => {
+                    const sc = SUPPLIERS.filter(s => s.level === t.name).length;
+                    return `<tr>
+                        <td style="font-family:monospace;font-size:12px">${t.id}</td>
+                        <td><span style="padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:var(--secondary-light);color:var(--secondary)">${t.code}</span></td>
+                        <td style="font-weight:500">${t.name}</td>
+                        <td style="font-size:12px;color:var(--text-secondary);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.desc}</td>
+                        <td style="font-weight:600">${sc}</td>
+                        <td style="font-size:11px">${t.scenarioRefs.join(', ')}</td>
+                        <td><a class="action-link bd-edit" data-type="object-type" data-code="${t.id}">编辑</a></td>
+                    </tr>`;
+                }).join('')}</tbody>
+            </table></div></div>`;
+    }
+
+    function renderBdIndustriesTab() {
+        return `
+            <div class="card" style="margin-bottom:12px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+                <div><span style="font-size:14px;font-weight:600">行业</span><span style="font-size:12px;color:var(--text-muted);margin-left:8px">供应商所属行业分类</span></div>
+                <button class="btn btn-primary btn-sm bd-add" data-type="industry">+ 新增行业</button>
+            </div>
+            <div class="card" style="padding:0"><div class="table-wrapper"><table class="data-table">
+                <thead><tr><th style="width:70px">编号</th><th style="width:50px">编码</th><th>行业名称</th><th>说明</th><th>供应商数</th><th style="width:80px">操作</th></tr></thead>
+                <tbody>${INDUSTRIES.map(ind => {
+                    const sc = SUPPLIERS.filter(s => s.industry === ind.name).length;
+                    return `<tr>
+                        <td style="font-family:monospace;font-size:12px">${ind.id}</td>
+                        <td><span style="padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:var(--info-light);color:var(--info)">${ind.code}</span></td>
+                        <td style="font-weight:500">${ind.name}</td>
+                        <td style="font-size:12px;color:var(--text-secondary);max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ind.desc}</td>
+                        <td style="font-weight:600">${sc}</td>
+                        <td><a class="action-link bd-edit" data-type="industry" data-code="${ind.id}">编辑</a></td>
+                    </tr>`;
+                }).join('')}</tbody>
+            </table></div></div>`;
     }
 
     function bdUsageInfo(type, code) {
@@ -1669,11 +1721,31 @@
 
     function openBdModal(type, code) {
         const isEdit = !!code;
-        const titles = { 'indicator-type': '指标类型', 'level1': '一级指标', 'level2': '二级指标', 'scoring-rule': '评分规则', 'scenario': '评估场景', 'supplier': '供应商' };
+        const titles = { 'object-type': '评估对象类型', 'industry': '行业', 'indicator-type': '指标类型', 'level1': '一级指标', 'level2': '二级指标', 'scoring-rule': '评分规则', 'scenario': '评估场景', 'supplier': '供应商' };
         const title = (isEdit ? '编辑' : '新增') + titles[type];
         let body = '';
 
-        if (type === 'indicator-type') {
+        if (type === 'object-type') {
+            const item = isEdit ? OBJECT_TYPES.find(x => x.id === code) : { id: '', code: '', name: '', desc: '', scenarioRefs: [] };
+            body = `
+                <div class="form-row">
+                    <div class="form-group"><label class="required">编号</label><input type="text" value="${item.id}" placeholder="例: OT-07" ${isEdit ? 'readonly style="background:var(--bg)"' : ''}></div>
+                    <div class="form-group"><label class="required">编码</label><input type="text" value="${item.code}" placeholder="例: MT" maxlength="2"></div>
+                </div>
+                <div class="form-group"><label class="required">类型名称</label><input type="text" value="${item.name}" placeholder="例: 模具供应商"></div>
+                <div class="form-group"><label>说明</label><textarea rows="2" placeholder="描述该类型的适用范围">${item.desc}</textarea></div>
+                ${isEdit ? `<div style="margin-top:12px;padding:10px;background:var(--bg);border-radius:var(--radius);font-size:12px;color:var(--text-muted)">关联供应商: <strong>${SUPPLIERS.filter(s => s.level === item.name).length}</strong> 家 · 关联场景: <strong>${item.scenarioRefs.length}</strong> 个</div>` : ''}`;
+        } else if (type === 'industry') {
+            const item = isEdit ? INDUSTRIES.find(x => x.id === code) : { id: '', code: '', name: '', desc: '' };
+            body = `
+                <div class="form-row">
+                    <div class="form-group"><label class="required">编号</label><input type="text" value="${item.id}" placeholder="例: IND-13" ${isEdit ? 'readonly style="background:var(--bg)"' : ''}></div>
+                    <div class="form-group"><label class="required">编码</label><input type="text" value="${item.code}" placeholder="例: GLAS" maxlength="4"></div>
+                </div>
+                <div class="form-group"><label class="required">行业名称</label><input type="text" value="${item.name}" placeholder="例: 汽车玻璃制造"></div>
+                <div class="form-group"><label>说明</label><textarea rows="2" placeholder="描述该行业的范围">${item.desc}</textarea></div>
+                ${isEdit ? `<div style="margin-top:12px;padding:10px;background:var(--bg);border-radius:var(--radius);font-size:12px;color:var(--text-muted)">关联供应商: <strong>${SUPPLIERS.filter(s => s.industry === item.name).length}</strong> 家</div>` : ''}`;
+        } else if (type === 'indicator-type') {
             const item = isEdit ? INDICATOR_TYPES.find(x => x.code === code) : { code: '', name: '', color: '#10B981', desc: '' };
             body = `
                 <div class="form-row">
@@ -1775,6 +1847,218 @@
             alert((isEdit ? '已保存修改' : '已新增') + '（原型演示）');
             closeModal();
         };
+        cancelBtn.onclick = closeModal;
+    }
+
+    // ===== BD: 评估对象类型 =====
+    function renderBdObjectTypes() {
+        pageContent.innerHTML = `
+            <div class="page-header">
+                <div><h1>评估对象类型</h1><p>定义供应商分类，被评估场景与供应商管理引用</p></div>
+                <button class="btn btn-primary btn-sm" id="addObjType">+ 新增类型</button>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px">
+                ${OBJECT_TYPES.map(t => {
+                    const supCount = SUPPLIERS.filter(s => s.level === t.name).length;
+                    return `<div class="card" style="border-left:4px solid var(--secondary)">
+                        <div class="card-header">
+                            <div style="display:flex;align-items:center;gap:8px">
+                                <span style="padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;background:var(--secondary-light);color:var(--secondary)">${t.code}</span>
+                                <h3 style="font-size:15px">${t.name}</h3>
+                            </div>
+                            <a class="action-link" onclick="window._editObjType('${t.id}')">编辑</a>
+                        </div>
+                        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px">${t.desc}</p>
+                        <div style="display:flex;gap:16px;flex-wrap:wrap">
+                            <div class="inline-stat"><span>关联供应商</span><strong>${supCount}</strong></div>
+                            <div class="inline-stat"><span>关联场景</span><strong>${t.scenarioRefs.length}</strong></div>
+                        </div>
+                        ${t.scenarioRefs.length ? `<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px">${t.scenarioRefs.map(s => `<span class="chip" style="font-size:10px">${s}</span>`).join('')}</div>` : ''}
+                    </div>`;
+                }).join('')}
+            </div>
+        `;
+        document.getElementById('addObjType').addEventListener('click', () => {
+            openModal('新增评估对象类型', `
+                <div class="form-row">
+                    <div class="form-group"><label class="required">编码</label><input type="text" placeholder="例: MT"></div>
+                    <div class="form-group"><label class="required">类型名称</label><input type="text" placeholder="例: 模具供应商"></div>
+                </div>
+                <div class="form-group"><label>说明</label><textarea rows="2" placeholder="描述该类型的适用范围"></textarea></div>
+                <div class="form-group"><label>关联评估场景</label>
+                    <div class="checkbox-grid">${ASSESSMENT_SCENARIOS.map(s => `<label class="checkbox-item"><input type="checkbox" value="${s.id}"><span style="font-size:11px">${s.id} ${s.name.substring(0, 10)}</span></label>`).join('')}</div>
+                </div>
+            `);
+            setupSimpleModal('确认新增');
+        });
+        window._editObjType = function (id) {
+            const t = OBJECT_TYPES.find(x => x.id === id);
+            if (!t) return;
+            openModal('编辑评估对象类型 — ' + t.name, `
+                <div class="form-row">
+                    <div class="form-group"><label class="required">编码</label><input type="text" value="${t.code}" readonly style="background:var(--bg)"></div>
+                    <div class="form-group"><label class="required">类型名称</label><input type="text" value="${t.name}"></div>
+                </div>
+                <div class="form-group"><label>说明</label><textarea rows="2">${t.desc}</textarea></div>
+                <div class="form-group"><label>关联评估场景</label>
+                    <div class="checkbox-grid">${ASSESSMENT_SCENARIOS.map(s => `<label class="checkbox-item ${t.scenarioRefs.includes(s.id) ? 'selected' : ''}"><input type="checkbox" value="${s.id}" ${t.scenarioRefs.includes(s.id) ? 'checked' : ''}><span style="font-size:11px">${s.id} ${s.name.substring(0, 10)}</span></label>`).join('')}</div>
+                </div>
+                <div style="margin-top:12px;padding:10px;background:var(--bg);border-radius:var(--radius);font-size:12px;color:var(--text-muted)">该类型下有 <strong>${SUPPLIERS.filter(s => s.level === t.name).length}</strong> 个供应商</div>
+            `);
+            setupSimpleModal('保存修改');
+        };
+    }
+
+    // ===== BD: 行业 =====
+    function renderBdIndustries() {
+        pageContent.innerHTML = `
+            <div class="page-header">
+                <div><h1>行业</h1><p>供应商所属行业分类，被供应商管理引用</p></div>
+                <button class="btn btn-primary btn-sm" id="addIndustry">+ 新增行业</button>
+            </div>
+            <div class="card" style="padding:0">
+                <div class="table-wrapper"><table class="data-table">
+                    <thead><tr><th style="width:80px">编号</th><th style="width:60px">编码</th><th>行业名称</th><th>说明</th><th>关联供应商</th><th style="width:100px">操作</th></tr></thead>
+                    <tbody>${INDUSTRIES.map(ind => {
+                        const supCount = SUPPLIERS.filter(s => s.industry === ind.name).length;
+                        return `<tr>
+                            <td style="font-family:monospace;font-size:12px">${ind.id}</td>
+                            <td><span style="padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;background:var(--info-light);color:var(--info)">${ind.code}</span></td>
+                            <td style="font-weight:500">${ind.name}</td>
+                            <td style="font-size:12px;color:var(--text-secondary);max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ind.desc}</td>
+                            <td><span style="font-size:12px">${supCount > 0 ? `<strong>${supCount}</strong> 家` : '<span style="color:var(--text-muted)">0</span>'}</span></td>
+                            <td><a class="action-link" onclick="window._editIndustry('${ind.id}')">编辑</a></td>
+                        </tr>`;
+                    }).join('')}</tbody>
+                </table></div>
+            </div>
+        `;
+        document.getElementById('addIndustry').addEventListener('click', () => {
+            openModal('新增行业', `
+                <div class="form-row">
+                    <div class="form-group"><label class="required">编号</label><input type="text" placeholder="例: IND-13"></div>
+                    <div class="form-group"><label class="required">编码</label><input type="text" placeholder="例: GLAS" maxlength="4"></div>
+                </div>
+                <div class="form-group"><label class="required">行业名称</label><input type="text" placeholder="例: 汽车玻璃制造"></div>
+                <div class="form-group"><label>说明</label><textarea rows="2" placeholder="描述该行业的范围"></textarea></div>
+            `);
+            setupSimpleModal('确认新增');
+        });
+        window._editIndustry = function (id) {
+            const ind = INDUSTRIES.find(x => x.id === id);
+            if (!ind) return;
+            const supCount = SUPPLIERS.filter(s => s.industry === ind.name).length;
+            openModal('编辑行业 — ' + ind.name, `
+                <div class="form-row">
+                    <div class="form-group"><label class="required">编号</label><input type="text" value="${ind.id}" readonly style="background:var(--bg)"></div>
+                    <div class="form-group"><label class="required">编码</label><input type="text" value="${ind.code}"></div>
+                </div>
+                <div class="form-group"><label class="required">行业名称</label><input type="text" value="${ind.name}"></div>
+                <div class="form-group"><label>说明</label><textarea rows="2">${ind.desc}</textarea></div>
+                <div style="margin-top:12px;padding:10px;background:var(--bg);border-radius:var(--radius);font-size:12px;color:var(--text-muted)">该行业下有 <strong>${supCount}</strong> 个供应商</div>
+                ${supCount > 0 ? `<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px">${SUPPLIERS.filter(s => s.industry === ind.name).map(s => `<span class="chip">${s.id} ${s.name.substring(0, 8)}</span>`).join('')}</div>` : ''}
+            `);
+            setupSimpleModal('保存修改');
+        };
+    }
+
+    // ===== BD: 指标类型 =====
+    function renderBdIndicatorTypesPage() {
+        const summary = computeS001Summary();
+        pageContent.innerHTML = `
+            <div class="page-header">
+                <div><h1>指标类型</h1><p>管理 A–H 评估维度分类，被一级指标、评估方案、评估打分引用</p></div>
+                <button class="btn btn-primary btn-sm" id="addIndType">+ 新增指标类型</button>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:16px">
+                ${INDICATOR_TYPES.map(t => {
+                    const l1c = LEVEL1_INDICATORS.filter(i => i.type === t.code).length;
+                    const l2c = LEVEL2_INDICATORS.filter(i => i.code.startsWith(t.code)).length;
+                    const plans = ASSESSMENT_PLANS.filter(p => p.categories.includes(t.code)).length;
+                    const sc = summary.byType[t.code];
+                    return `<div class="card" style="border-left:4px solid ${t.color}">
+                        <div class="card-header">
+                            <div style="display:flex;align-items:center;gap:10px">
+                                <span style="width:32px;height:32px;border-radius:8px;background:${t.color}15;color:${t.color};font-weight:800;font-size:16px;display:flex;align-items:center;justify-content:center">${t.code}</span>
+                                <div>
+                                    <h3 style="font-size:15px">${t.name}</h3>
+                                    <p style="font-size:11px;color:var(--text-secondary);margin-top:1px">${t.desc}</p>
+                                </div>
+                            </div>
+                            <a class="action-link" onclick="window._editIndType('${t.code}')">编辑</a>
+                        </div>
+                        <div style="display:flex;gap:12px;margin-top:12px;flex-wrap:wrap">
+                            <div style="padding:8px 14px;background:var(--bg);border-radius:var(--radius);text-align:center;flex:1;min-width:70px">
+                                <div style="font-size:18px;font-weight:700;color:${t.color}">${l1c}</div>
+                                <div style="font-size:10px;color:var(--text-muted)">一级指标</div>
+                            </div>
+                            <div style="padding:8px 14px;background:var(--bg);border-radius:var(--radius);text-align:center;flex:1;min-width:70px">
+                                <div style="font-size:18px;font-weight:700;color:${t.color}">${l2c}</div>
+                                <div style="font-size:10px;color:var(--text-muted)">二级指标</div>
+                            </div>
+                            <div style="padding:8px 14px;background:var(--bg);border-radius:var(--radius);text-align:center;flex:1;min-width:70px">
+                                <div style="font-size:18px;font-weight:700;color:var(--secondary)">${plans}</div>
+                                <div style="font-size:10px;color:var(--text-muted)">评估方案</div>
+                            </div>
+                            <div style="padding:8px 14px;background:var(--bg);border-radius:var(--radius);text-align:center;flex:1;min-width:70px">
+                                <div style="font-size:18px;font-weight:700;color:${sc ? scoreColor(sc) : 'var(--text-muted)'}">${sc || '-'}</div>
+                                <div style="font-size:10px;color:var(--text-muted)">S001 均分</div>
+                            </div>
+                        </div>
+                        <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:4px">
+                            ${LEVEL1_INDICATORS.filter(i => i.type === t.code).map(l => `<span class="chip" style="font-size:10px">${l.code} ${l.name.substring(0, 8)}</span>`).join('')}
+                        </div>
+                    </div>`;
+                }).join('')}
+            </div>
+        `;
+        document.getElementById('addIndType').addEventListener('click', () => {
+            openModal('新增指标类型', `
+                <div class="form-row">
+                    <div class="form-group"><label class="required">编码</label><input type="text" placeholder="A-Z 单字母" maxlength="1"></div>
+                    <div class="form-group"><label class="required">颜色</label><input type="color" value="#6366F1" style="height:36px;padding:2px"></div>
+                </div>
+                <div class="form-group"><label class="required">名称</label><input type="text" placeholder="例: 水资源与生态管理"></div>
+                <div class="form-group"><label>说明</label><input type="text" placeholder="简要描述该维度的评估范围"></div>
+            `);
+            setupSimpleModal('确认新增');
+        });
+        window._editIndType = function (code) {
+            const t = INDICATOR_TYPES.find(x => x.code === code);
+            if (!t) return;
+            const l1c = LEVEL1_INDICATORS.filter(i => i.type === code).length;
+            const l2c = LEVEL2_INDICATORS.filter(i => i.code.startsWith(code)).length;
+            openModal('编辑指标类型 — ' + t.code + '. ' + t.name, `
+                <div class="form-row">
+                    <div class="form-group"><label class="required">编码</label><input type="text" value="${t.code}" readonly style="background:var(--bg)"></div>
+                    <div class="form-group"><label class="required">颜色</label><input type="color" value="${t.color}" style="height:36px;padding:2px"></div>
+                </div>
+                <div class="form-group"><label class="required">名称</label><input type="text" value="${t.name}"></div>
+                <div class="form-group"><label>说明</label><input type="text" value="${t.desc}"></div>
+                <div style="margin-top:16px;padding:12px;background:var(--bg);border-radius:var(--radius)">
+                    <div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:8px">引用统计</div>
+                    <div style="display:flex;gap:16px;flex-wrap:wrap">
+                        <div class="inline-stat"><span>一级指标</span><strong>${l1c}</strong></div>
+                        <div class="inline-stat"><span>二级指标</span><strong>${l2c}</strong></div>
+                        <div class="inline-stat"><span>评估方案</span><strong>${ASSESSMENT_PLANS.filter(p => p.categories.includes(code)).length}</strong></div>
+                    </div>
+                </div>
+            `);
+            setupSimpleModal('保存修改');
+        };
+    }
+
+    function setupSimpleModal(confirmText) {
+        const prevBtn = document.getElementById('modalPrev');
+        const nextBtn = document.getElementById('modalNext');
+        const confirmBtn = document.getElementById('modalConfirm');
+        const cancelBtn = document.getElementById('modalCancel');
+        prevBtn.style.display = 'none';
+        nextBtn.style.display = 'none';
+        confirmBtn.style.display = '';
+        cancelBtn.style.display = '';
+        confirmBtn.textContent = confirmText;
+        confirmBtn.onclick = () => { alert(confirmText + '成功（原型演示）'); closeModal(); };
         cancelBtn.onclick = closeModal;
     }
 

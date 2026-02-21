@@ -1,3 +1,29 @@
+// ===== 评估对象类型 =====
+const OBJECT_TYPES = [
+    { id: 'OT-01', name: '一级供应商', code: 'T1', desc: '直接向主机厂供货的零部件供应商', supplierCount: 4, scenarioRefs: ['Scene-A','Scene-B','Scene-C','Scene-D'] },
+    { id: 'OT-02', name: '二级供应商', code: 'T2', desc: '向一级供应商供货的上游供应商', supplierCount: 3, scenarioRefs: ['Scene-A','Scene-B','Scene-H'] },
+    { id: 'OT-03', name: '关键原材料供应商', code: 'RM', desc: '钢铁、铝材、锂盐、正极/负极材料等关键原材料供应商', supplierCount: 3, scenarioRefs: ['Scene-E','Scene-F','Scene-L'] },
+    { id: 'OT-04', name: '物流服务商', code: 'LG', desc: '干线/支线物流、仓储、国际货代企业', supplierCount: 1, scenarioRefs: ['Scene-M'] },
+    { id: 'OT-05', name: '电池全链企业', code: 'BT', desc: '正极/负极/电芯/PACK/BMS 等电池全产业链供应商', supplierCount: 0, scenarioRefs: ['Scene-F'] },
+    { id: 'OT-06', name: '出口供应商', code: 'EX', desc: '涉及出口欧盟/北美市场的钢铝电池等CBAM品类供应商', supplierCount: 0, scenarioRefs: ['Scene-G'] },
+];
+
+// ===== 行业 =====
+const INDUSTRIES = [
+    { id: 'IND-01', name: '汽车零部件制造', code: 'AUTO', desc: '包含发动机、底盘、传动、制动等零部件制造', supplierCount: 1 },
+    { id: 'IND-02', name: '精密模具制造', code: 'MOLD', desc: '冲压模具、注塑模具、压铸模具等精密模具', supplierCount: 1 },
+    { id: 'IND-03', name: '新材料研发', code: 'NMAT', desc: '高分子材料、复合材料、轻量化新材料研发与生产', supplierCount: 1 },
+    { id: 'IND-04', name: '动力系统总成', code: 'PWRT', desc: '发动机总成、变速箱总成、电驱动系统', supplierCount: 1 },
+    { id: 'IND-05', name: '新能源电池', code: 'BATT', desc: '动力电池电芯、PACK、BMS及储能电池', supplierCount: 1 },
+    { id: 'IND-06', name: '底盘零部件', code: 'CHAS', desc: '悬架系统、转向系统、制动系统零部件', supplierCount: 1 },
+    { id: 'IND-07', name: '传动系统', code: 'TRAN', desc: '变速器、传动轴、差速器等传动系统零部件', supplierCount: 1 },
+    { id: 'IND-08', name: '汽车电子', code: 'ELEC', desc: '车载ECU、传感器、线束、仪表等电子零部件', supplierCount: 1 },
+    { id: 'IND-09', name: '锂电正极材料', code: 'CATH', desc: '磷酸铁锂、三元材料等正极材料生产', supplierCount: 1 },
+    { id: 'IND-10', name: '钢铁冶炼', code: 'STEL', desc: '碳钢、不锈钢、特种钢冶炼及轧制', supplierCount: 1 },
+    { id: 'IND-11', name: '物流运输', code: 'LOGI', desc: '干线/支线运输、仓储、国际货代', supplierCount: 1 },
+    { id: 'IND-12', name: '铝材加工', code: 'ALUM', desc: '铝合金铸造、铝型材挤压、铝板轧制', supplierCount: 1 },
+];
+
 // ===== 指标类型 (Indicator Categories) =====
 const INDICATOR_TYPES = [
     { code: 'A', name: '企业碳管理与绩效', color: '#10B981', desc: '温室气体排放核算、能源结构、碳管理体系、减排绩效、资源循环' },
