@@ -15,6 +15,7 @@
         plans: '评估方案',
         scoring: '评估打分',
         suppliers: '供应商列表',
+        bci: '经营能力指数(BCI)',
         'supplier-detail': 'S001 评估详情',
         'base-data': '基础数据 · 综合管理',
         'bd-object-types': '基础数据 · 评估对象类型',
@@ -58,7 +59,7 @@
     function closeModal() { modalOverlay.classList.remove('active'); }
 
     function renderPage(page) {
-        const r = { dashboard: renderDashboard, 'indicator-types': renderIndicatorTypes, 'indicator-tree': renderIndicatorTree, scenarios: renderScenarios, plans: renderPlans, scoring: renderScoring, suppliers: renderSuppliers, 'supplier-detail': renderSupplierDetail, 'base-data': renderBaseData, 'bd-object-types': renderBdObjectTypes, 'bd-industries': renderBdIndustries, 'bd-indicator-types': renderBdIndicatorTypesPage };
+        const r = { dashboard: renderDashboard, 'indicator-types': renderIndicatorTypes, 'indicator-tree': renderIndicatorTree, scenarios: renderScenarios, plans: renderPlans, scoring: renderScoring, suppliers: renderSuppliers, bci: renderBCI, 'supplier-detail': renderSupplierDetail, 'base-data': renderBaseData, 'bd-object-types': renderBdObjectTypes, 'bd-industries': renderBdIndustries, 'bd-indicator-types': renderBdIndicatorTypesPage };
         if (r[page]) r[page]();
     }
 
@@ -1226,6 +1227,184 @@
             avgEl.textContent = avg;
             avgEl.style.color = avg === '-' ? 'var(--text-muted)' : scoreColor(avg);
         });
+    }
+
+    // ===== BCI Page =====
+    function renderBCI() {
+        const sorted = [...BCI_SUPPLIER_SCORES].sort((a, b) => b.total - a.total);
+        const dimAvgs = {};
+        BCI_DIMENSIONS.forEach(d => {
+            const vals = BCI_SUPPLIER_SCORES.map(s => s[d.code]);
+            dimAvgs[d.code] = +(vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1);
+        });
+        const overallAvg = +(BCI_SUPPLIER_SCORES.reduce((a, s) => a + s.total, 0) / BCI_SUPPLIER_SCORES.length).toFixed(1);
+        const gradeCount = { A: 0, B: 0, C: 0, D: 0 };
+        BCI_SUPPLIER_SCORES.forEach(s => gradeCount[s.grade]++);
+
+        pageContent.innerHTML = `
+            <div class="page-header">
+                <div>
+                    <h1>供应商经营能力指数 (BCI)</h1>
+                    <p>Business Capability Index — 从财务稳健、企业资质、技术创新、合规管理四个维度综合评估供应商经营能力</p>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-secondary btn-sm">导出报告</button>
+                    <button class="btn btn-primary btn-sm" onclick="window._bciFocus='S001';renderBCI()">查看 S001 详情</button>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card"><div class="stat-icon green"><svg width="24" height="24" viewBox="0 0 20 20" fill="currentColor"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg></div>
+                    <div class="stat-info"><h4>评估供应商</h4><div class="stat-value">${BCI_SUPPLIER_SCORES.length}</div></div></div>
+                <div class="stat-card"><div class="stat-icon blue"><svg width="24" height="24" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812z" clip-rule="evenodd"/></svg></div>
+                    <div class="stat-info"><h4>平均 BCI 指数</h4><div class="stat-value">${overallAvg}</div></div></div>
+                <div class="stat-card"><div class="stat-icon purple"><svg width="24" height="24" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg></div>
+                    <div class="stat-info"><h4>A级供应商</h4><div class="stat-value" style="color:var(--primary)">${gradeCount.A}</div></div></div>
+                <div class="stat-card"><div class="stat-icon red"><svg width="24" height="24" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92z" clip-rule="evenodd"/></svg></div>
+                    <div class="stat-info"><h4>D级供应商</h4><div class="stat-value" style="color:var(--danger)">${gradeCount.D}</div></div></div>
+            </div>
+
+            <!-- Dimension Overview -->
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px" class="bci-dim-grid">
+                ${BCI_DIMENSIONS.map(d => `
+                    <div class="card" style="border-top:4px solid ${d.color};text-align:center;padding:20px 16px">
+                        <div style="font-size:28px;margin-bottom:4px">${d.icon}</div>
+                        <h3 style="font-size:15px;margin-bottom:2px">${d.name}</h3>
+                        <p style="font-size:11px;color:var(--text-muted);margin-bottom:12px">${d.desc}</p>
+                        <div style="font-size:32px;font-weight:800;color:${d.color}">${dimAvgs[d.code]}</div>
+                        <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">全供应商均分</div>
+                        <div style="font-size:12px;font-weight:600;color:${d.color}">权重 ${d.weight}%</div>
+                    </div>
+                `).join('')}
+            </div>
+
+            <div class="dashboard-grid">
+                <!-- S001 Detail Card -->
+                <div class="card">
+                    <div class="card-header"><h3>S001 经营能力雷达</h3></div>
+                    <div style="height:260px">${svgRadar(
+                        BCI_DIMENSIONS.map(d => BCI_SUPPLIER_SCORES[0][d.code] / 10),
+                        BCI_DIMENSIONS.map(d => d.name),
+                        300, 260, '#10B981'
+                    )}</div>
+                    <div style="text-align:center;margin-top:8px">
+                        <span style="font-size:28px;font-weight:800;color:var(--primary)">${BCI_SUPPLIER_SCORES[0].total}</span>
+                        <span style="font-size:13px;color:var(--text-muted);margin-left:4px">/ 100</span>
+                        <div style="margin-top:4px">${gradeTag(BCI_SUPPLIER_SCORES[0].grade)}</div>
+                    </div>
+                </div>
+
+                <!-- Ranking -->
+                <div class="card">
+                    <div class="card-header"><h3>供应商 BCI 排行</h3></div>
+                    <div style="display:flex;flex-direction:column;gap:8px">
+                        ${sorted.map((s, i) => {
+                            const sup = SUPPLIERS.find(x => x.id === s.supplierId);
+                            return `<div style="display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:var(--radius-sm);${i < 3 ? 'background:var(--primary-light)' : ''}">
+                                <span style="width:22px;text-align:center;font-size:13px;font-weight:700;color:${i < 3 ? 'var(--primary)' : 'var(--text-muted)'}">${i + 1}</span>
+                                <span style="flex:1;font-size:13px;font-weight:${i < 3 ? '600' : '400'}">${sup?.name?.substring(0, 10) || s.supplierId}</span>
+                                ${gradeTag(s.grade)}
+                                <span style="font-size:15px;font-weight:700;color:${bciColor(s.total)};min-width:36px;text-align:right">${s.total}</span>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                </div>
+
+                <!-- S001 Dimension Detail -->
+                <div class="card full-width">
+                    <div class="card-header"><h3>S001 · 上海鑫能汽车零部件有限公司 — BCI 评分明细</h3></div>
+                    <div class="tabs" id="bciDimTabs">
+                        ${BCI_DIMENSIONS.map((d, i) => `<button class="tab ${i === 0 ? 'active' : ''}" data-bci-dim="${d.code}" style="${i === 0 ? `border-color:${d.color};color:${d.color}` : ''}">${d.icon} ${d.name}</button>`).join('')}
+                    </div>
+                    <div id="bciDetailContent">${renderBCIDetail('FIN')}</div>
+                </div>
+
+                <!-- Comparison Table -->
+                <div class="card full-width">
+                    <div class="card-header"><h3>全供应商 BCI 对比</h3></div>
+                    <div class="table-wrapper"><table class="data-table">
+                        <thead><tr>
+                            <th style="width:40px">#</th><th>供应商</th>
+                            ${BCI_DIMENSIONS.map(d => `<th style="text-align:center"><span style="color:${d.color}">${d.icon} ${d.name}</span></th>`).join('')}
+                            <th style="text-align:center">BCI 总分</th><th style="text-align:center">等级</th>
+                        </tr></thead>
+                        <tbody>${sorted.map((s, i) => {
+                            const sup = SUPPLIERS.find(x => x.id === s.supplierId);
+                            return `<tr>
+                                <td style="font-weight:700;color:${i < 3 ? 'var(--primary)' : 'var(--text-muted)'}">${i + 1}</td>
+                                <td style="font-weight:500">${sup?.name || s.supplierId}</td>
+                                ${BCI_DIMENSIONS.map(d => `<td style="text-align:center;font-weight:600;color:${bciColor(s[d.code])}">${s[d.code]}</td>`).join('')}
+                                <td style="text-align:center;font-size:16px;font-weight:800;color:${bciColor(s.total)}">${s.total}</td>
+                                <td style="text-align:center">${gradeTag(s.grade)}</td>
+                            </tr>`;
+                        }).join('')}</tbody>
+                    </table></div>
+                </div>
+            </div>
+        `;
+
+        document.querySelectorAll('#bciDimTabs .tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('#bciDimTabs .tab').forEach(t => { t.classList.remove('active'); t.style.borderColor = ''; t.style.color = ''; });
+                tab.classList.add('active');
+                const dim = BCI_DIMENSIONS.find(d => d.code === tab.dataset.bciDim);
+                if (dim) { tab.style.borderColor = dim.color; tab.style.color = dim.color; }
+                document.getElementById('bciDetailContent').innerHTML = renderBCIDetail(tab.dataset.bciDim);
+            });
+        });
+    }
+
+    function bciColor(score) {
+        if (score >= 85) return 'var(--primary)';
+        if (score >= 70) return 'var(--secondary)';
+        if (score >= 60) return '#F59E0B';
+        return '#EF4444';
+    }
+
+    function renderBCIDetail(dimCode) {
+        const dim = BCI_DIMENSIONS.find(d => d.code === dimCode);
+        const indicators = BCI_INDICATORS.filter(i => i.dim === dimCode);
+        const s001 = BCI_SUPPLIER_SCORES[0];
+        const dimScore = s001[dimCode];
+
+        return `
+            <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;padding:12px 16px;background:${dim.color}08;border-radius:var(--radius);border-left:4px solid ${dim.color}">
+                <div>
+                    <div style="font-size:14px;font-weight:700;color:${dim.color}">${dim.icon} ${dim.name}</div>
+                    <div style="font-size:12px;color:var(--text-secondary);margin-top:2px">${dim.desc}</div>
+                </div>
+                <div style="margin-left:auto;text-align:center">
+                    <div style="font-size:28px;font-weight:800;color:${dim.color}">${dimScore}</div>
+                    <div style="font-size:10px;color:var(--text-muted)">维度得分</div>
+                </div>
+                <div style="text-align:center;padding-left:16px;border-left:1px solid var(--border)">
+                    <div style="font-size:16px;font-weight:700;color:var(--text-secondary)">${dim.weight}%</div>
+                    <div style="font-size:10px;color:var(--text-muted)">权重</div>
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead><tr>
+                        <th style="width:80px">编码</th><th>指标名称</th><th style="width:70px;text-align:center">权重</th>
+                        <th style="width:100px;text-align:center">实际值</th><th style="width:80px;text-align:center">得分</th><th style="width:140px">得分条</th>
+                    </tr></thead>
+                    <tbody>${indicators.map(ind => {
+                        const detail = s001.details[ind.code];
+                        const sc = detail?.score ?? '-';
+                        const val = detail?.value ?? '-';
+                        return `<tr>
+                            <td style="font-family:monospace;font-size:12px;font-weight:600;color:${dim.color}">${ind.code}</td>
+                            <td style="font-weight:500">${ind.name}</td>
+                            <td style="text-align:center;font-weight:600;color:var(--text-muted)">${ind.weight}%</td>
+                            <td style="text-align:center;font-weight:600">${val}</td>
+                            <td style="text-align:center;font-size:15px;font-weight:700;color:${typeof sc === 'number' ? bciColor(sc) : 'var(--text-muted)'}">${sc}</td>
+                            <td>${typeof sc === 'number' ? `<div class="progress-bar"><div class="progress-fill" style="width:${sc}%;background:${bciColor(sc)}"></div></div>` : ''}</td>
+                        </tr>`;
+                    }).join('')}</tbody>
+                </table>
+            </div>
+        `;
     }
 
     // ===== Suppliers =====

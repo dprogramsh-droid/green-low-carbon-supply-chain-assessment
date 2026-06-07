@@ -24,6 +24,83 @@ const INDUSTRIES = [
     { id: 'IND-12', name: '铝材加工', code: 'ALUM', desc: '铝合金铸造、铝型材挤压、铝板轧制', supplierCount: 1 },
 ];
 
+// ===== 供应商经营能力指数 BCI (Business Capability Index) =====
+const BCI_DIMENSIONS = [
+    { code: 'FIN', name: '财务稳健', color: '#10B981', icon: '💰', weight: 30, desc: '财务健康程度、盈利能力、偿债能力、现金流状况' },
+    { code: 'QUA', name: '企业资质', color: '#3B82F6', icon: '🏅', weight: 25, desc: '行业认证、资质等级、荣誉奖项、知识产权' },
+    { code: 'TEC', name: '技术创新', color: '#8B5CF6', icon: '🔬', weight: 25, desc: '研发投入、专利成果、技术转化、创新团队' },
+    { code: 'COM', name: '合规管理', color: '#F59E0B', icon: '⚖️', weight: 20, desc: '法律合规、质量体系、环保安全、社会责任' },
+];
+
+const BCI_INDICATORS = [
+    // 财务稳健
+    { code: 'FIN-01', dim: 'FIN', name: '营业收入(亿元)', weight: 15 },
+    { code: 'FIN-02', dim: 'FIN', name: '净利润率(%)', weight: 15 },
+    { code: 'FIN-03', dim: 'FIN', name: '资产负债率(%)', weight: 15 },
+    { code: 'FIN-04', dim: 'FIN', name: '流动比率', weight: 15 },
+    { code: 'FIN-05', dim: 'FIN', name: '经营性现金流(亿元)', weight: 10 },
+    { code: 'FIN-06', dim: 'FIN', name: '应收账款周转天数', weight: 10 },
+    { code: 'FIN-07', dim: 'FIN', name: '近3年营收复合增长率(%)', weight: 10 },
+    { code: 'FIN-08', dim: 'FIN', name: '信用评级', weight: 10 },
+    // 企业资质
+    { code: 'QUA-01', dim: 'QUA', name: 'IATF 16949 认证', weight: 20 },
+    { code: 'QUA-02', dim: 'QUA', name: 'ISO 9001 认证', weight: 15 },
+    { code: 'QUA-03', dim: 'QUA', name: 'ISO 14001 认证', weight: 15 },
+    { code: 'QUA-04', dim: 'QUA', name: '国家高新技术企业', weight: 15 },
+    { code: 'QUA-05', dim: 'QUA', name: '专精特新企业', weight: 10 },
+    { code: 'QUA-06', dim: 'QUA', name: '发明专利数量', weight: 10 },
+    { code: 'QUA-07', dim: 'QUA', name: '行业资质等级', weight: 10 },
+    { code: 'QUA-08', dim: 'QUA', name: '成立年限(年)', weight: 5 },
+    // 技术创新
+    { code: 'TEC-01', dim: 'TEC', name: '研发费用占营收比(%)', weight: 20 },
+    { code: 'TEC-02', dim: 'TEC', name: '研发人员占比(%)', weight: 15 },
+    { code: 'TEC-03', dim: 'TEC', name: '年度新增专利数', weight: 15 },
+    { code: 'TEC-04', dim: 'TEC', name: '核心技术自主率(%)', weight: 15 },
+    { code: 'TEC-05', dim: 'TEC', name: '新产品营收占比(%)', weight: 10 },
+    { code: 'TEC-06', dim: 'TEC', name: '产学研合作项目数', weight: 10 },
+    { code: 'TEC-07', dim: 'TEC', name: '技术平台/实验室数量', weight: 10 },
+    { code: 'TEC-08', dim: 'TEC', name: '数字化制造水平', weight: 5 },
+    // 合规管理
+    { code: 'COM-01', dim: 'COM', name: '近3年重大违法违规', weight: 20 },
+    { code: 'COM-02', dim: 'COM', name: '质量管理体系完善度', weight: 15 },
+    { code: 'COM-03', dim: 'COM', name: '环保合规达标率(%)', weight: 15 },
+    { code: 'COM-04', dim: 'COM', name: '安全生产事故率', weight: 15 },
+    { code: 'COM-05', dim: 'COM', name: 'ESG 报告披露', weight: 10 },
+    { code: 'COM-06', dim: 'COM', name: '劳动合规与员工权益', weight: 10 },
+    { code: 'COM-07', dim: 'COM', name: '知识产权合规', weight: 10 },
+    { code: 'COM-08', dim: 'COM', name: '反腐败与商业道德', weight: 5 },
+];
+
+const BCI_SUPPLIER_SCORES = [
+    { supplierId: 'S001', FIN: 88, QUA: 92, TEC: 85, COM: 90, total: 88.6, grade: 'A',
+      details: {
+        'FIN-01': { value: '12.5', score: 85 }, 'FIN-02': { value: '8.2', score: 82 }, 'FIN-03': { value: '42', score: 90 },
+        'FIN-04': { value: '1.85', score: 88 }, 'FIN-05': { value: '1.8', score: 86 }, 'FIN-06': { value: '65', score: 85 },
+        'FIN-07': { value: '18', score: 92 }, 'FIN-08': { value: 'AA', score: 95 },
+        'QUA-01': { value: '是', score: 100 }, 'QUA-02': { value: '是', score: 100 }, 'QUA-03': { value: '是', score: 100 },
+        'QUA-04': { value: '是', score: 100 }, 'QUA-05': { value: '是', score: 90 }, 'QUA-06': { value: '86', score: 85 },
+        'QUA-07': { value: '甲级', score: 90 }, 'QUA-08': { value: '18', score: 72 },
+        'TEC-01': { value: '5.8', score: 88 }, 'TEC-02': { value: '22', score: 85 }, 'TEC-03': { value: '32', score: 82 },
+        'TEC-04': { value: '78', score: 85 }, 'TEC-05': { value: '35', score: 88 }, 'TEC-06': { value: '5', score: 82 },
+        'TEC-07': { value: '3', score: 80 }, 'TEC-08': { value: '良好', score: 85 },
+        'COM-01': { value: '无', score: 100 }, 'COM-02': { value: '95', score: 95 }, 'COM-03': { value: '98', score: 92 },
+        'COM-04': { value: '0', score: 100 }, 'COM-05': { value: '是', score: 85 }, 'COM-06': { value: '92', score: 88 },
+        'COM-07': { value: '合规', score: 85 }, 'COM-08': { value: '完善', score: 80 },
+      }
+    },
+    { supplierId: 'S002', FIN: 72, QUA: 78, TEC: 68, COM: 82, total: 74.6, grade: 'B', details: {} },
+    { supplierId: 'S003', FIN: 90, QUA: 88, TEC: 92, COM: 86, total: 89.4, grade: 'A', details: {} },
+    { supplierId: 'S004', FIN: 82, QUA: 85, TEC: 78, COM: 80, total: 81.4, grade: 'B', details: {} },
+    { supplierId: 'S005', FIN: 65, QUA: 72, TEC: 75, COM: 68, total: 69.8, grade: 'C', details: {} },
+    { supplierId: 'S006', FIN: 70, QUA: 75, TEC: 62, COM: 78, total: 71.0, grade: 'B', details: {} },
+    { supplierId: 'S007', FIN: 48, QUA: 55, TEC: 52, COM: 45, total: 50.2, grade: 'D', details: {} },
+    { supplierId: 'S008', FIN: 75, QUA: 80, TEC: 72, COM: 84, total: 77.2, grade: 'B', details: {} },
+    { supplierId: 'S009', FIN: 85, QUA: 90, TEC: 88, COM: 92, total: 88.2, grade: 'A', details: {} },
+    { supplierId: 'S010', FIN: 78, QUA: 70, TEC: 55, COM: 65, total: 68.0, grade: 'C', details: {} },
+    { supplierId: 'S011', FIN: 68, QUA: 72, TEC: 58, COM: 80, total: 69.2, grade: 'C', details: {} },
+    { supplierId: 'S012', FIN: 60, QUA: 65, TEC: 50, COM: 58, total: 58.6, grade: 'D', details: {} },
+];
+
 // ===== 指标类型 (Indicator Categories) =====
 const INDICATOR_TYPES = [
     { code: 'A', name: '企业碳管理与绩效', color: '#10B981', desc: '温室气体排放核算、能源结构、碳管理体系、减排绩效、资源循环' },

@@ -1693,6 +1693,21 @@ body {
     transform: rotate(-90deg);
 }
 
+/* ===== BCI Dimension Grid ===== */
+.bci-dim-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+
+@media (max-width: 900px) {
+    .bci-dim-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 500px) {
+    .bci-dim-grid { grid-template-columns: 1fr; }
+}
+
 /* ===== Score Header Row ===== */
 .score-header-row {
     display: grid;
